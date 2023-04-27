@@ -14,17 +14,23 @@ import {
   TouchableWithoutFeedback,
   View,
   Platform,
+  Button,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import {useDispatch, useSelector} from 'react-redux';
 import {setID, setTransactions} from '../../redux/actions';
 import Transfer from './customPaymentsButtons';
-import {addData, fetchData, fetchTransactions} from './FirebaseFunctions';
+import {
+  addData,
+  fetchData,
+  fetchTransactions,
+  fetchTransactionsByDate,
+} from './FirebaseFunctions';
 import _ from 'lodash';
 import firebase from 'firebase/compat';
+import {Timestamp} from 'firebase/firestore';
 import DateTimePicker from '@react-native-community/datetimepicker';
-
 
 export default function Payments({navigation}) {
   const {transactions} = useSelector(state => state.transactionReducer);
@@ -47,6 +53,7 @@ export default function Payments({navigation}) {
   const getTransactions = async () => {
     try {
       const tranzactii = await fetchTransactions('tranzactii');
+      setFilteredTransactions(tranzactii);
       dispatch(setTransactions(tranzactii));
     } catch (error) {
       console.error('Error fetching transactions: ', error);
@@ -97,12 +104,31 @@ export default function Payments({navigation}) {
     setIsRefreshing(false);
   };
 
-
   //filtrare dupa data
-  const [fromDate, setFromDate] = useState(null);
-  const [toDate, setToDate] = useState(null);
+  const [fromDate, setFromDate] = useState(new Date());
+  const [toDate, setToDate] = useState(new Date());
   const [showPicker, setShowPicker] = useState(false);
 
+  const showFromDatepicker = () => {
+    setShowPicker('from');
+  };
+
+  const showToDatepicker = () => {
+    setShowPicker('to');
+  };
+
+  const hideDatePicker = () => {
+    setShowPicker(false);
+  };
+  const [filteredTransactions, setFilteredTransactions] = useState([]);
+  const handleFilterByDate = async () => {
+    const dataTranzactii = await fetchTransactionsByDate(
+      'tranzactii',
+      fromDate,
+      toDate,
+    );
+    setFilteredTransactions(dataTranzactii);
+  };
   const handleFromDateChange = (event, date) => {
     if (date) {
       const currentDate = new Date(date);
@@ -115,9 +141,9 @@ export default function Payments({navigation}) {
       } else {
         setFromDate(currentDate);
       }
+      handleFilterByDate();
     }
   };
-
   const handleToDateChange = (event, date) => {
     if (date) {
       const currentDate = new Date(date);
@@ -129,17 +155,13 @@ export default function Payments({navigation}) {
       } else {
         setToDate(currentDate);
       }
+      handleFilterByDate();
     }
   };
-
-  const showDatePicker = () => {
-    setShowPicker(true);
+  const handleReset = () => {
+    setFromDate('');
+    setFilteredTransactions(transactions);
   };
-
-  const hideDatePicker = () => {
-    setShowPicker(false);
-  };
-
   return (
     <View style={styles.scroll}>
       <ScrollView nestedScrollEnabled>
@@ -209,7 +231,6 @@ export default function Payments({navigation}) {
         </Modal>
       </ScrollView>
 
-      <Text style={styles.header}>Plati</Text>
       <View style={styles.paymetsPage}>
         <View style={styles.plati}>
           <View style={styles.elementePlata}>
@@ -238,22 +259,29 @@ export default function Payments({navigation}) {
             <Text style={styles.platiText}>mele</Text>
           </View>
         </View>
-        <View style={styles.transactions}>
-          <Text style={styles.transactionsText}>Tranzactii</Text>
-          <TouchableOpacity onPress={showDatePicker}>
-            <Text>Select Dates</Text>
-          </TouchableOpacity>
-          <View>
-            <TextInput
-              placeholder="From Date"
-              value={fromDate ? fromDate.toDateString() : ''}
-              editable={false}
-            />
-            <TextInput
-              placeholder="To Date"
-              value={toDate ? toDate.toDateString() : ''}
-              editable={false}
-            />
+        <View style={styles.dateContainer}>
+          <View style={styles.inputDateContainer}>
+            <TouchableOpacity onPress={showFromDatepicker}>
+              <FontAwesome5 name="calendar" size={20} color="#000" />
+              <TextInput
+                placeholder="De la"
+                style={styles.input}
+                value={fromDate ? fromDate.toLocaleDateString('en-GB') : ''}
+                editable={false}
+              />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.inputDateContainer}>
+            <TouchableOpacity onPress={showToDatepicker}>
+              <FontAwesome5 name="calendar" size={20} />
+
+              <TextInput
+                placeholder="Pana la"
+                style={styles.input}
+                value={toDate ? toDate.toLocaleDateString('en-GB') : ''}
+                editable={false}
+              />
+            </TouchableOpacity>
           </View>
           {showPicker && (
             <DateTimePicker
@@ -263,21 +291,22 @@ export default function Payments({navigation}) {
               maximumDate={new Date()}
               onChange={(event, date) => {
                 hideDatePicker();
-                if (fromDate) {
-                  handleToDateChange(event, date);
-                } else {
+                if (showPicker === 'from') {
                   handleFromDateChange(event, date);
+                } else {
+                  handleToDateChange(event, date);
                 }
               }}
             />
           )}
         </View>
+        <Button title="Cancel Filter" onPress={handleReset} />
         <FlatList
           refreshing={isRefreshing}
           onRefresh={handleRefresh}
           // initialScrollIndex={transactions.length - 1}
           style={styles.listaTranzactii}
-          data={_.sortBy(transactions, 'Data').reverse()}
+          data={_.sortBy(filteredTransactions, 'Data').reverse()}
           contentContainerStyle={{
             flexGrow: 1,
             padding: 15,
@@ -317,20 +346,7 @@ export default function Payments({navigation}) {
 }
 
 const styles = StyleSheet.create({
-  header: {
-    color: '#000',
-    fontSize: 20,
-    backgroundColor: '#f4845f',
-    padding: 15,
-    marginBottom: 20,
-    borderBottomRightRadius: 10,
-    borderBottomLeftRadius: 10,
-    textTransform: 'uppercase',
-    fontWeight: 'bold',
-    opacity: 0.6,
-  },
   plati: {
-    flex: 1,
     marginTop: 50,
     marginBottom: 60,
     flexDirection: 'row',
@@ -354,11 +370,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#fff',
   },
-  image: {
-    width: 420,
-    height: 500,
-    resizeMode: 'contain',
-  },
+
   scroll: {
     backgroundColor: '#fff',
   },
@@ -513,5 +525,24 @@ const styles = StyleSheet.create({
     marginTop: 20,
     width: '100%',
     borderColor: 'black',
+  },
+  dateContainer: {
+    flex: 0.5,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  inputDateContainer: {
+    flex: 0.3,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 10,
+  },
+  input: {
+    height: 40,
+    marginLeft: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
   },
 });

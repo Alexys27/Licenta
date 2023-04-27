@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import {collection, addDoc, getDocs} from 'firebase/firestore';
+import {collection, addDoc, getDocs, query, where} from 'firebase/firestore';
 import {db} from './Firebase';
 
 export const addData = async (collectionName, data, options) => {
@@ -26,11 +26,11 @@ export const fetchTransactions = async collectionName => {
     const data = querySnapshot.docs.map(doc => {
       const transaction = doc.data();
       const Data = transaction.Data.toDate().toLocaleDateString('en-GB', {
-              day: '2-digit',
-              month: '2-digit',
-              year: '2-digit',
-            }); // format date as "DD/MM/YY"
-      return {id: doc.id,...transaction, Data};
+        day: '2-digit',
+        month: '2-digit',
+        year: '2-digit',
+      }); // format date as "DD/MM/YY"
+      return {id: doc.id, ...transaction, Data};
     });
     return data;
   } catch (e) {
@@ -39,6 +39,39 @@ export const fetchTransactions = async collectionName => {
   }
 };
 
+
+
+
+export const fetchTransactionsByDate = async (
+  collectionName,
+  fromDate,
+  toDate,
+) => {
+  try {
+    console.log(fromDate, toDate, collectionName);
+    const q = query(
+      collection(db, collectionName),
+      where('Data', '>=', fromDate),
+      where('Data', '<=', toDate),
+    );
+    const querySnapshot = await getDocs(q);
+    // Map the query results to an array of transaction objects with formatted dates
+    const data = querySnapshot.docs.map(doc => {
+      const transaction = doc.data();
+      const Data = transaction.Data.toDate().toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: '2-digit',
+        year: '2-digit',
+      }); // format date as "DD/MM/YY" if transaction.Data exists
+      return {id: doc.id, ...transaction, Data};
+    });
+
+    return data;
+  } catch (e) {
+    console.error('Error fetching data: ', e);
+    return [];
+  }
+};
 // export default insertData;
 // export const fetchUsers = async () => {
 //   try {
