@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import {collection, addDoc, getDocs, query, where} from 'firebase/firestore';
+import {collection,doc, addDoc, getDocs, query, where, runTransaction } from 'firebase/firestore';
 import {db} from './Firebase';
 
 export const addData = async (collectionName, data, options) => {
@@ -40,8 +40,6 @@ export const fetchTransactions = async collectionName => {
 };
 
 
-
-
 export const fetchTransactionsByDate = async (
   collectionName,
   fromDate,
@@ -65,13 +63,30 @@ export const fetchTransactionsByDate = async (
       }); // format date as "DD/MM/YY" if transaction.Data exists
       return {id: doc.id, ...transaction, Data};
     });
-
     return data;
   } catch (e) {
     console.error('Error fetching data: ', e);
     return [];
   }
 };
+export const updateSold = async (accountId, amount) => {
+  try {
+    const accountRef = doc(db, 'conturi', accountId);
+    await runTransaction(db, async transaction => {
+      const accountSnapshot = await transaction.get(accountRef);
+      const accountData = accountSnapshot.data();
+      if (accountData) {
+        transaction.update(accountRef, {Sold: amount});
+      } else {
+        throw new Error(`Account with ID ${accountId} not found`);
+      }
+    });
+  } catch (error) {
+    console.error('Error updating account amount:', error);
+    throw error;
+  }
+};
+
 // export default insertData;
 // export const fetchUsers = async () => {
 //   try {

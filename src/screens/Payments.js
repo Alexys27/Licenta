@@ -26,6 +26,7 @@ import {
   fetchData,
   fetchTransactions,
   fetchTransactionsByDate,
+  updateSold,
 } from './FirebaseFunctions';
 import _ from 'lodash';
 import firebase from 'firebase/compat';
@@ -42,19 +43,31 @@ export default function Payments({navigation}) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  var data = new Date();
   const [name, setName] = useState('');
   const [desc, setDesc] = useState('');
   const [suma, setSuma] = useState();
   const [IBAN, setIBAN] = useState('');
   const [adresa, setAdresa] = useState('');
-
+  const [tipTranzactie, setTipTranzactie] = useState('da');
+  const [filteredTransactions, setFilteredTransactions] = useState([]);
   // Preluare din baza de date
   const getTransactions = async () => {
     try {
       const tranzactii = await fetchTransactions('tranzactii');
       setFilteredTransactions(tranzactii);
       dispatch(setTransactions(tranzactii));
+      const sumeTranzactii = tranzactii.map(trans => {
+        if (trans.este_plata === 'da') {
+          return -trans.Suma;
+        } else {
+          return trans.Suma;
+        }
+      });
+      var sumaTranzactii = 0;
+      for (let i = 0; i < sumeTranzactii.length; i++) {
+        sumaTranzactii += sumeTranzactii[i];
+      }
+      updateSold('cont_principal', sumaTranzactii);
     } catch (error) {
       console.error('Error fetching transactions: ', error);
     }
@@ -82,10 +95,11 @@ export default function Payments({navigation}) {
           Desc: desc,
           Data: timestamp,
           Adresa: adresa,
-          este_plata: 'da',
+          este_plata: tipTranzactie,
         };
 
         addData('tranzactii', Transaction);
+
         Alert.alert('Succes!', 'Tranzactia s-a efectuat cu succes.');
         //Aici trebuie apelata functia de inserare in baza de date cu parametul 'Transaction'
         SetShowForm(false);
@@ -120,7 +134,7 @@ export default function Payments({navigation}) {
   const hideDatePicker = () => {
     setShowPicker(false);
   };
-  const [filteredTransactions, setFilteredTransactions] = useState([]);
+
   const handleFilterByDate = async () => {
     const dataTranzactii = await fetchTransactionsByDate(
       'tranzactii',
@@ -135,13 +149,12 @@ export default function Payments({navigation}) {
       const maxDate = new Date();
       maxDate.setDate(maxDate.getDate() - 1);
       if (currentDate.getTime() > maxDate.getTime()) {
-        alert("From date can't be after today.");
+        Alert.alert("From date can't be after today.");
       } else if (toDate && currentDate.getTime() > toDate.getTime()) {
-        alert("From date can't be after To date.");
+        Alert.alert("From date can't be after To date.");
       } else {
         setFromDate(currentDate);
       }
-      handleFilterByDate();
     }
   };
   const handleToDateChange = (event, date) => {
@@ -149,9 +162,9 @@ export default function Payments({navigation}) {
       const currentDate = new Date(date);
       const maxDate = new Date();
       if (currentDate.getTime() > maxDate.getTime()) {
-        alert("To date can't be after today.");
+        Alert.alert("To date can't be after today.");
       } else if (fromDate && currentDate.getTime() < fromDate.getTime()) {
-        alert("To date can't be before From date.");
+        Alert.alert("To date can't be before From date.");
       } else {
         setToDate(currentDate);
       }
@@ -259,6 +272,7 @@ export default function Payments({navigation}) {
             <Text style={styles.platiText}>mele</Text>
           </View>
         </View>
+        <Button title="Cancel Filter" onPress={handleReset} />
         <View style={styles.dateContainer}>
           <View style={styles.inputDateContainer}>
             <TouchableOpacity onPress={showFromDatepicker}>
@@ -300,7 +314,7 @@ export default function Payments({navigation}) {
             />
           )}
         </View>
-        <Button title="Cancel Filter" onPress={handleReset} />
+
         <FlatList
           refreshing={isRefreshing}
           onRefresh={handleRefresh}
@@ -527,7 +541,8 @@ const styles = StyleSheet.create({
     borderColor: 'black',
   },
   dateContainer: {
-    flex: 0.5,
+    flex: 1,
+    marginTop: 15,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',

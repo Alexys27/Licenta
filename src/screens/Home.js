@@ -16,7 +16,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import LinearGradient from 'react-native-linear-gradient';
 import {setTransactions, setAccID, setNewAccounts} from '../../redux/actions';
-import {fetchData, addData} from './FirebaseFunctions';
+import {
+  fetchData,
+  addData,
+  fetchTransactions,
+  updateSold,
+} from './FirebaseFunctions';
 import firebase from 'firebase/compat/app';
 import 'firebase/compat/firestore';
 // TODO: Add SDKs for Firebase products that you want to use
@@ -37,7 +42,7 @@ firebase.initializeApp(firebaseConfig);
 export default function Home() {
   const [cardNumber, setCardNumber] = useState('XXXX XXXX XXXX 1445');
   const [viewCardNumber, setViewCardNumber] = useState(false);
-  const [sold, setSold] = useState(6000);
+  const [sold, setSold] = useState();
   const [soldContNou, setSoldContNou] = useState(2000);
   const [titluContNou, setTitluContNou] = useState('Cont Nou');
   const [showTransferForm, setShowForm] = useState(false);
@@ -57,49 +62,73 @@ export default function Home() {
   useEffect(() => {
     // getTransactions();
     getAccounts();
+    getTransactions();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-
   // functie generare iban
-function generateRomanianIBAN() {
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  const countryCode = 'RO';
-  const bankCode = 'RNCB';
-  const accountNumber = Math.floor(Math.random() * 1000000000000000)
-    .toString()
-    .padStart(16, '0');
-  const controlDigit = '00';
-  const iban = countryCode + controlDigit + bankCode + accountNumber;
+  function generateRomanianIBAN() {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const countryCode = 'RO';
+    const bankCode = 'RNCB';
+    const accountNumber = Math.floor(Math.random() * 1000000000000000)
+      .toString()
+      .padStart(16, '0');
+    const controlDigit = '00';
+    const iban = countryCode + controlDigit + bankCode + accountNumber;
 
-  // Calculate the checksum using the MOD97 algorithm
-  let checksum = 0;
-  for (let i = 0; i < iban.length; i++) {
-    const charValue = characters.indexOf(iban.charAt(i)) + 10;
-    checksum = (charValue > 9 ? checksum * 100 : checksum * 10) + charValue;
-    checksum %= 97;
+    // Calculate the checksum using the MOD97 algorithm
+    let checksum = 0;
+    for (let i = 0; i < iban.length; i++) {
+      const charValue = characters.indexOf(iban.charAt(i)) + 10;
+      checksum = (charValue > 9 ? checksum * 100 : checksum * 10) + charValue;
+      checksum %= 97;
+    }
+    checksum = 98 - checksum;
+    const ibanWithChecksum =
+      countryCode +
+      checksum.toString().padStart(2, '0') +
+      bankCode +
+      accountNumber;
+
+    return ibanWithChecksum;
   }
-  checksum = 98 - checksum;
-  const ibanWithChecksum =
-    countryCode +
-    checksum.toString().padStart(2, '0') +
-    bankCode +
-    accountNumber;
-
-  return ibanWithChecksum;
-}
-
-
+ const getTransactions = async () => {
+   try {
+     const tranzactii = await fetchTransactions('tranzactii');
+     const sumeTranzactii = tranzactii.map(trans => {
+       if (trans.este_plata === 'da') {
+         return -trans.Suma;
+       } else {
+         return trans.Suma;
+       }
+     });
+     var sumaTranzactii = 0;
+     for (let i = 0; i < sumeTranzactii.length; i++) {
+       sumaTranzactii += sumeTranzactii[i];
+     }
+     updateSold('cont_principal', sumaTranzactii);
+   } catch (error) {
+     console.error('Error fetching transactions: ', error);
+   }
+ };
   //preluare conturi
   const getAccounts = async () => {
     try {
       const firebaseAccounts = await fetchData('conturi');
       dispatch(setNewAccounts(firebaseAccounts));
+      firebaseAccounts.map(acc => {
+        const ID = acc.id;
+        if (ID === 'cont_principal') {
+          const soldCont = acc.Sold;
+          setSold(soldCont);
+        }
+      });
     } catch (error) {
       console.error('Error fetching accounts: ', error);
     }
   };
-//setare conturi
+  //setare conturi
   const setAccounts = () => {
     try {
       const Account = {
@@ -125,6 +154,7 @@ function generateRomanianIBAN() {
   //functie pentru apasarea butonului necesar crearii unui cont nou
   const onPressNewAccount = async () => {
     dispatch(setAccID(accounts.length + 1));
+    console.log(sold);
     setShowForm(true);
   };
 
@@ -225,8 +255,6 @@ const styles = StyleSheet.create({
     flex: 1,
     marginTop: '10%',
     backgroundColor: '#f5f3f4',
-    borderTopRightRadius: 40,
-    borderTopLeftRadius: 40,
     alignItems: 'center',
   },
   cardView: {
