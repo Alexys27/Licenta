@@ -143,34 +143,36 @@ export default function Payments({navigation}) {
     );
     setFilteredTransactions(dataTranzactii);
   };
-  const handleFromDateChange = (event, date) => {
-    if (date) {
-      const currentDate = new Date(date);
-      const maxDate = new Date();
-      maxDate.setDate(maxDate.getDate() - 1);
-      if (currentDate.getTime() > maxDate.getTime()) {
-        Alert.alert("From date can't be after today.");
-      } else if (toDate && currentDate.getTime() > toDate.getTime()) {
-        Alert.alert("From date can't be after To date.");
-      } else {
-        setFromDate(currentDate);
-      }
+const handleFromDateChange = (event, date) => {
+  if (date) {
+    const currentDate = new Date(date);
+    const maxDate = new Date();
+    maxDate.setDate(maxDate.getDate() - 1);
+    if (currentDate.getTime() > maxDate.getTime()) {
+      Alert.alert("From date can't be after today.");
+    } else if (toDate && currentDate.getTime() > toDate.getTime()) {
+      Alert.alert("From date can't be after To date.");
+    } else {
+      setFromDate(currentDate);
+      console.log(currentDate);
     }
-  };
-  const handleToDateChange = (event, date) => {
-    if (date) {
-      const currentDate = new Date(date);
-      const maxDate = new Date();
-      if (currentDate.getTime() > maxDate.getTime()) {
-        Alert.alert("To date can't be after today.");
-      } else if (fromDate && currentDate.getTime() < fromDate.getTime()) {
-        Alert.alert("To date can't be before From date.");
-      } else {
-        setToDate(currentDate);
-      }
-      handleFilterByDate();
+  }
+};
+
+const handleToDateChange = (event, date) => {
+  if (date) {
+    const currentDate = new Date(date);
+    const maxDate = new Date();
+    if (currentDate.getTime() > maxDate.getTime()) {
+      Alert.alert("To date can't be after today.");
+    } else if (fromDate && currentDate.getTime() < fromDate.getTime()) {
+      Alert.alert("To date can't be before From date.");
+    } else {
+      setToDate(currentDate);
+      console.log(currentDate);
     }
-  };
+  }
+};
   const handleReset = () => {
     setFromDate('');
     setFilteredTransactions(transactions);
@@ -288,7 +290,6 @@ export default function Payments({navigation}) {
           <View style={styles.inputDateContainer}>
             <TouchableOpacity onPress={showToDatepicker}>
               <FontAwesome5 name="calendar" size={20} />
-
               <TextInput
                 placeholder="Pana la"
                 style={styles.input}
@@ -309,6 +310,7 @@ export default function Payments({navigation}) {
                   handleFromDateChange(event, date);
                 } else {
                   handleToDateChange(event, date);
+                  handleFilterByDate();
                 }
               }}
             />
