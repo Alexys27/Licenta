@@ -19,7 +19,12 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import {useDispatch, useSelector} from 'react-redux';
-import {setID, setTransactions} from '../../redux/actions';
+import {
+  setID,
+  setTransactions,
+  setAccID,
+  setNewAccounts,
+} from '../../redux/actions';
 import Transfer from './customPaymentsButtons';
 import {
   addData,
@@ -32,17 +37,13 @@ import _ from 'lodash';
 import firebase from 'firebase/compat';
 import {Timestamp} from 'firebase/firestore';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import {CustomModal} from './customModalTransfer';
+import moment from 'moment';
 
 export default function Payments({navigation}) {
   const {transactions} = useSelector(state => state.transactionReducer);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const dispatch = useDispatch();
-
-  useEffect(() => {
-    getTransactions();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   const [name, setName] = useState('');
   const [desc, setDesc] = useState('');
   const [suma, setSuma] = useState();
@@ -50,6 +51,53 @@ export default function Payments({navigation}) {
   const [adresa, setAdresa] = useState('');
   const [tipTranzactie, setTipTranzactie] = useState('da');
   const [filteredTransactions, setFilteredTransactions] = useState([]);
+  const {accounts} = useSelector(state => state.transactionReducer);
+  const [ibanContCurent, setIbanContCurent] = useState();
+  const [showTransferForm, SetShowForm] = useState(false);
+  const [titluContAles, setTitluContAles] = useState();
+  const [facturiModal, setFacturiModal] = useState(false);
+  const [open, setOpen] = useState(false);
+  const handleOpenModal = () => {
+    setFacturiModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setFacturiModal(false);
+    console.log(facturiModal);
+  };
+
+  const handleSetTransaction = () => {
+    // Handle set transaction logic
+    setTransaction();
+  };
+
+  const handleSetIBAN = value => {
+    // Handle set IBAN logic
+  };
+
+  const handleSetName = value => {
+    // Handle set name logic
+  };
+
+  const handleSetSuma = value => {
+    // Handle set suma logic
+  };
+
+  const handleSetAdresa = value => {
+    // Handle set adresa logic
+  };
+
+  const handleSetDesc = value => {
+    // Handle set desc logic
+  };
+
+  useEffect(() => {
+    getAccounts();
+    getTransactions();
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Preluare din baza de date
   const getTransactions = async () => {
     try {
@@ -72,12 +120,25 @@ export default function Payments({navigation}) {
       console.error('Error fetching transactions: ', error);
     }
   };
-
-  const [showTransferForm, SetShowForm] = useState(false);
+  const getAccounts = async () => {
+    try {
+      const firebaseAccounts = await fetchData('conturi');
+      dispatch(setNewAccounts(firebaseAccounts));
+    } catch (error) {
+      console.error('Error fetching accounts: ', error);
+    }
+  };
+  //sa ramana doar pressHandlerTransfer, pentru restul, separat
   const onPressHandler = () => {
     dispatch(setID(transactions.length + 1));
+    accounts.map(acc => {
+      if (acc.Title === 'Pachet Personalizat') {
+        setIbanContCurent(acc.IBAN_cont);
+      }
+    });
     SetShowForm(true);
   };
+  //TO-DO: handler de modificare IBAN_cont la alegerea din meniul 'din contul'
 
   const setTransaction = () => {
     const timestamp = firebase.firestore.Timestamp.fromDate(new Date());
@@ -89,6 +150,7 @@ export default function Payments({navigation}) {
       try {
         var Transaction = {
           ID_utilizator: 1,
+          IBAN_cont: ibanContCurent,
           IBAN_DC: IBAN,
           Nume_DC: name,
           Suma: suma,
@@ -143,42 +205,52 @@ export default function Payments({navigation}) {
     );
     setFilteredTransactions(dataTranzactii);
   };
-const handleFromDateChange = (event, date) => {
-  if (date) {
-    const currentDate = new Date(date);
-    const maxDate = new Date();
-    maxDate.setDate(maxDate.getDate() - 1);
-    if (currentDate.getTime() > maxDate.getTime()) {
-      Alert.alert("From date can't be after today.");
-    } else if (toDate && currentDate.getTime() > toDate.getTime()) {
-      Alert.alert("From date can't be after To date.");
-    } else {
-      setFromDate(currentDate);
-      console.log(currentDate);
+  const handleFromDateChange = (event, date) => {
+    if (date) {
+      const currentDate = new Date(date);
+      const maxDate = new Date();
+      maxDate.setDate(maxDate.getDate() - 1);
+      if (currentDate.getTime() > maxDate.getTime()) {
+        Alert.alert("From date can't be after today.");
+      } else if (toDate && currentDate.getTime() > toDate.getTime()) {
+        Alert.alert("From date can't be after To date.");
+      } else {
+        setFromDate(currentDate);
+      }
     }
-  }
-};
+  };
 
-const handleToDateChange = (event, date) => {
-  if (date) {
-    const currentDate = new Date(date);
-    const maxDate = new Date();
-    if (currentDate.getTime() > maxDate.getTime()) {
-      Alert.alert("To date can't be after today.");
-    } else if (fromDate && currentDate.getTime() < fromDate.getTime()) {
-      Alert.alert("To date can't be before From date.");
-    } else {
-      setToDate(currentDate);
-      console.log(currentDate);
+  const handleToDateChange = (event, date) => {
+    if (date) {
+      const currentDate = new Date(date);
+      const maxDate = new Date();
+      if (currentDate.getTime() > maxDate.getTime()) {
+        Alert.alert("To date can't be after today.");
+      } else if (fromDate && currentDate.getTime() < fromDate.getTime()) {
+        Alert.alert("To date can't be before From date.");
+      } else {
+        setToDate(currentDate);
+      }
     }
-  }
-};
+  };
   const handleReset = () => {
     setFromDate('');
+    setToDate('');
     setFilteredTransactions(transactions);
   };
+
   return (
     <View style={styles.scroll}>
+      <CustomModal
+        visible={facturiModal}
+        onRequestClose={handleCloseModal}
+        setTransaction={handleSetTransaction}
+        setIBAN={handleSetIBAN}
+        setName={handleSetName}
+        setSuma={handleSetSuma}
+        setAdresa={handleSetAdresa}
+        setDesc={handleSetDesc}
+      />
       <ScrollView nestedScrollEnabled>
         <Modal
           animationType="slide"
@@ -259,7 +331,7 @@ const handleToDateChange = (event, date) => {
           <View style={styles.elementePlata}>
             <Transfer
               color="#f25c54"
-              onPressButton={onPressHandler}
+              onPressButton={handleOpenModal}
               iconName="file-invoice-dollar"
             />
             <Text style={styles.platiText}>Plata factura</Text>
@@ -267,7 +339,7 @@ const handleToDateChange = (event, date) => {
           <View style={styles.elementePlata}>
             <Transfer
               color="#f7b267"
-              onPressButton={onPressHandler}
+              onPressButton={handleOpenModal}
               iconName="level-down-alt"
             />
             <Text style={styles.platiText}>Intre conturile</Text>
@@ -275,6 +347,7 @@ const handleToDateChange = (event, date) => {
           </View>
         </View>
         <Button title="Cancel Filter" onPress={handleReset} />
+        <Button title="Filter" onPress={handleFilterByDate} />
         <View style={styles.dateContainer}>
           <View style={styles.inputDateContainer}>
             <TouchableOpacity onPress={showFromDatepicker}>
@@ -310,7 +383,6 @@ const handleToDateChange = (event, date) => {
                   handleFromDateChange(event, date);
                 } else {
                   handleToDateChange(event, date);
-                  handleFilterByDate();
                 }
               }}
             />
@@ -322,7 +394,9 @@ const handleToDateChange = (event, date) => {
           onRefresh={handleRefresh}
           // initialScrollIndex={transactions.length - 1}
           style={styles.listaTranzactii}
-          data={_.sortBy(filteredTransactions, 'Data').reverse()}
+          data={_.sortBy(filteredTransactions, transaction =>
+            moment(transaction.Data, 'DD/MM/YYYY'),
+          ).reverse()}
           contentContainerStyle={{
             flexGrow: 1,
             padding: 15,

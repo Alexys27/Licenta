@@ -1,5 +1,14 @@
 /* eslint-disable prettier/prettier */
-import {collection,doc, addDoc, getDocs, query, where, runTransaction } from 'firebase/firestore';
+import {
+  collection,
+  doc,
+  addDoc,
+  deleteDoc,
+  getDocs,
+  query,
+  where,
+  runTransaction,
+} from 'firebase/firestore';
 import {db} from './Firebase';
 
 export const addData = async (collectionName, data, options) => {
@@ -20,6 +29,15 @@ export const fetchData = async collectionName => {
     console.error('Error fetching data: ', e);
   }
 };
+export const deleteData = async (collectionName, documentId) => {
+  try {
+    await deleteDoc(doc(collection(db, collectionName), documentId));
+    console.log(`${documentId} deleted successfully`);
+  } catch (e) {
+    console.error('Error deleting data: ', e);
+  }
+};
+
 export const fetchTransactions = async collectionName => {
   try {
     const querySnapshot = await getDocs(collection(db, collectionName));
@@ -39,14 +57,12 @@ export const fetchTransactions = async collectionName => {
   }
 };
 
-
 export const fetchTransactionsByDate = async (
   collectionName,
   fromDate,
   toDate,
 ) => {
   try {
-    console.log(fromDate, toDate, collectionName);
     const q = query(
       collection(db, collectionName),
       where('Data', '>=', fromDate),

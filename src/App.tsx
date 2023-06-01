@@ -16,7 +16,7 @@ import {createMaterialBottomTabNavigator} from '@react-navigation/material-botto
 import {StyleSheet} from 'react-native';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import Budget from './screens/Budget';
-// import Login from './screens/Login';
+import Login from './screens/Login';
 import Payments from './screens/Payments';
 import Reports from './screens/Reports';
 import {Store} from '../redux/store';

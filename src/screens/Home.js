@@ -5,6 +5,7 @@ import {
   Alert,
   FlatList,
   Modal,
+  Pressable,
   SafeAreaView,
   StyleSheet,
   Text,
@@ -15,8 +16,14 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import LinearGradient from 'react-native-linear-gradient';
-import {setTransactions, setAccID, setNewAccounts} from '../../redux/actions';
 import {
+  setTransactions,
+  setAccID,
+  setNewAccounts,
+  SET_TRANSACTION,
+} from '../../redux/actions';
+import {
+  deleteData,
   fetchData,
   addData,
   fetchTransactions,
@@ -24,6 +31,7 @@ import {
 } from './FirebaseFunctions';
 import firebase from 'firebase/compat/app';
 import 'firebase/compat/firestore';
+import IntroducereSuma from './economiiSuma';
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -43,10 +51,12 @@ export default function Home() {
   const [cardNumber, setCardNumber] = useState('XXXX XXXX XXXX 1445');
   const [viewCardNumber, setViewCardNumber] = useState(false);
   const [sold, setSold] = useState();
-  const [soldContNou, setSoldContNou] = useState(2000);
+  const [soldContNou, setSoldContNou] = useState(0);
   const [titluContNou, setTitluContNou] = useState('Cont Nou');
   const [showTransferForm, setShowForm] = useState(false);
-  const {accounts} = useSelector(state => state.transactionReducer);
+  const {accounts, transactions} = useSelector(
+    state => state.transactionReducer,
+  );
   const dispatch = useDispatch();
   const getCurrentDate = () => {
     var date = new Date().getDate();
@@ -93,25 +103,25 @@ export default function Home() {
 
     return ibanWithChecksum;
   }
- const getTransactions = async () => {
-   try {
-     const tranzactii = await fetchTransactions('tranzactii');
-     const sumeTranzactii = tranzactii.map(trans => {
-       if (trans.este_plata === 'da') {
-         return -trans.Suma;
-       } else {
-         return trans.Suma;
-       }
-     });
-     var sumaTranzactii = 0;
-     for (let i = 0; i < sumeTranzactii.length; i++) {
-       sumaTranzactii += sumeTranzactii[i];
-     }
-     updateSold('cont_principal', sumaTranzactii);
-   } catch (error) {
-     console.error('Error fetching transactions: ', error);
-   }
- };
+  const getTransactions = async () => {
+    try {
+      const tranzactii = await fetchTransactions('tranzactii');
+      const sumeTranzactii = tranzactii.map(trans => {
+        if (trans.este_plata === 'da') {
+          return -trans.Suma;
+        } else {
+          return trans.Suma;
+        }
+      });
+      var sumaTranzactii = 0;
+      for (let i = 0; i < sumeTranzactii.length; i++) {
+        sumaTranzactii += sumeTranzactii[i];
+      }
+      updateSold('cont_principal', sumaTranzactii);
+    } catch (error) {
+      console.error('Error fetching transactions: ', error);
+    }
+  };
   //preluare conturi
   const getAccounts = async () => {
     try {
@@ -128,36 +138,114 @@ export default function Home() {
       console.error('Error fetching accounts: ', error);
     }
   };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  const setTransaction = (ibanCont, titlu, suma) => {
+    const timestamp = firebase.firestore.Timestamp.fromDate(new Date());
+      try {
+        var Transaction = {
+          ID_utilizator: 1,
+          IBAN_cont: ibanCont,
+          Nume_DC: titlu,
+          Suma: suma,
+          Desc: 'transfer intre conturi proprii',
+          Data: timestamp,
+          este_plata: 'da',
+        };
+        console.log(ibanCont, titlu, suma);
+        addData('tranzactii', Transaction);
+        getTransactions();
+        Alert.alert('Succes!', 'Tranzactia s-a efectuat cu succes.');
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   //setare conturi
-  const setAccounts = () => {
-    try {
-      const Account = {
-        Title: titluContNou,
-        Sold: soldContNou,
-        DataCreare: data,
-        ID_utilizator: 1,
-        IBAN_cont: generateRomanianIBAN(),
-      };
-      const newAccounts = [...accounts, Account];
-      AsyncStorage.setItem('Accounts', JSON.stringify(newAccounts))
-        .then(() => {
-          dispatch(setNewAccounts(newAccounts));
-          addData('conturi', Account);
-          Alert.alert('Succes!', 'Contul a fost creat cu succes.');
-        })
-        .catch(err => console.log(err));
-    } catch (error) {
-      console.log(error);
+
+  const [showIntroducere, setShowIntroducere] = useState(false);
+  const setAccounts = id => {
+    if (id === 'economii') {
+      try {
+        const Account = {
+          Title: titluContNou,
+          Sold: soldContNou,
+          DataCreare: data,
+          ID_utilizator: 1,
+          IBAN_cont: generateRomanianIBAN(),
+        };
+        const newAccounts = [...accounts, Account];
+        AsyncStorage.setItem('Accounts', JSON.stringify(newAccounts))
+          .then(() => {
+            dispatch(setNewAccounts(newAccounts));
+            addData('conturi', Account);
+            setTransaction(Account.IBAN_cont, Account.Title, Account.Sold);
+            Alert.alert('Succes!', 'Contul a fost creat cu succes.');
+          })
+          .catch(err => console.log(err));
+      } catch (error) {
+        console.log(error);
+      }
+    } else {
+      console.log('alta functie');
     }
   };
-
+  const handleAmountChange = value => {
+    setSoldContNou(value);
+  };
   //functie pentru apasarea butonului necesar crearii unui cont nou
   const onPressNewAccount = async () => {
     dispatch(setAccID(accounts.length + 1));
     console.log(sold);
     setShowForm(true);
   };
-
+  const deleteAccount = async id => {
+    try {
+      await deleteData('conturi', id);
+      getAccounts();
+    } catch (error) {}
+  };
   return (
     <SafeAreaView style={styles.mainView}>
       <Text style={styles.balance}>SOLD</Text>
@@ -204,14 +292,16 @@ export default function Home() {
           // eslint-disable-next-line react-native/no-inline-styles
           contentContainerStyle={{paddingBottom: 10}}
           renderItem={({item}) => (
-            <TouchableOpacity style={styles.contNouComponent}>
+            <Pressable
+              onLongPress={async () => deleteAccount(item.id)}
+              style={styles.contNouComponent}>
               <View style={styles.titluContNou}>
                 <Text>{item.Title}</Text>
               </View>
               <View style={styles.elementeContNou}>
                 <Text style={styles.soldContCurent}>{item.Sold} RON</Text>
               </View>
-            </TouchableOpacity>
+            </Pressable>
           )}
         />
         <TouchableOpacity
@@ -225,19 +315,58 @@ export default function Home() {
           onRequestClose={() => setShowForm(false)}
           visible={showTransferForm}>
           <View style={styles.newAccountData}>
-            <TextInput
-              placeholder="Tip Cont"
-              onChangeText={value => setTitluContNou(value)}
+            <TouchableOpacity style={styles.butonCont}>
+              <View style={styles.contTitle}>
+                <Text>Cont de economii</Text>
+              </View>
+              <View>
+                <Text>
+                  In acest cont vei putea adauga si retrage bani oricand fara ca
+                  dobanda ta sa se modifice. Dobanda: 2.5%/an
+                </Text>
+              </View>
+              <View style={styles.trimite}>
+                <TouchableOpacity
+                  style={styles.sendButton}
+                  onPress={() => setShowIntroducere(true)}>
+                  <Text>Creeaza cont economii</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
+            <IntroducereSuma
+              visible={showIntroducere}
+              onClose={() => setShowIntroducere(false)}
+              onConfirm={() => setAccounts('economii')}
+              onAmountChange={handleAmountChange}
             />
-            <TextInput
-              placeholder="Sold"
-              onChangeText={value => setSoldContNou(value)}
-            />
-            <View style={styles.trimite}>
-              <TouchableOpacity style={styles.sendButton} onPress={setAccounts}>
-                <Text>Trimite</Text>
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity style={styles.butonCont}>
+              <View style={styles.contTitle}>
+                <Text>Depozit la termen</Text>
+              </View>
+              <View>
+                <Text>
+                  In acest cont adaugi bani acum si ii vei putea retrage dupa o
+                  data stabilita.
+                </Text>
+              </View>
+              <View style={styles.trimite}>
+                <TouchableOpacity
+                  style={styles.sendButton}
+                  onPress={setAccounts}>
+                  <Text> 3 luni = 5.2%/an</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.sendButton}
+                  onPress={setAccounts}>
+                  <Text> 6 luni = 6.1%/an</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.sendButton}
+                  onPress={setAccounts}>
+                  <Text> 12 luni = 7.5%/an</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
           </View>
         </Modal>
       </View>
@@ -246,6 +375,16 @@ export default function Home() {
 }
 
 const styles = StyleSheet.create({
+  contTitle: {
+    borderBottomWidth: 0.2,
+    marginBottom: 10,
+  },
+  butonCont: {
+    elevation: 10,
+    margin: '10%',
+    padding: 20,
+    backgroundColor: 'white',
+  },
   mainView: {
     flex: 1,
     backgroundColor: '#000',
@@ -346,17 +485,15 @@ const styles = StyleSheet.create({
   trimite: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: '10%',
-    marginBottom: '10%',
   },
   sendButton: {
-    flex: 0.3,
     backgroundColor: '#f07167',
-    width: 200,
-    height: 50,
+    width: '100%',
+    marginTop: 5,
+    marginBottom: 5,
+    height: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 10,
   },
   newAccountData: {
     flex: 1,

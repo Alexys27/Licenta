@@ -9,6 +9,7 @@ import XLSX from 'xlsx';
 import RNFS from 'react-native-fs';
 import Share from 'react-native-share';
 import _ from 'lodash';
+import moment from 'moment';
 const Reports = () => {
   const [open, setOpen] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState('');
@@ -42,7 +43,9 @@ const Reports = () => {
         'Transaction Description',
         'Amount',
       ];
-      const sortedTransactions = _.sortBy(transactions, 'Data').reverse();
+      const sortedTransactions = _.sortBy(transactions, transaction =>
+        moment(transaction.Data, 'DD/MM/YYYY'),
+      ).reverse();
       
       const data = [
         headers,
