@@ -132,7 +132,7 @@ export default function Payments({navigation}) {
   const onPressHandler = () => {
     dispatch(setID(transactions.length + 1));
     accounts.map(acc => {
-      if (acc.Title === 'Pachet Personalizat') {
+      if (acc.Title === 'Cont Principal') {
         setIbanContCurent(acc.IBAN_cont);
       }
     });
@@ -159,7 +159,7 @@ export default function Payments({navigation}) {
           Adresa: adresa,
           este_plata: tipTranzactie,
         };
-
+        console.log(Transaction);
         addData('tranzactii', Transaction);
 
         Alert.alert('Succes!', 'Tranzactia s-a efectuat cu succes.');

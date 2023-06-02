@@ -117,7 +117,8 @@ export default function Home() {
       for (let i = 0; i < sumeTranzactii.length; i++) {
         sumaTranzactii += sumeTranzactii[i];
       }
-      updateSold('cont_principal', sumaTranzactii);
+      console.log(sumaTranzactii);
+      await updateSold('cont_principal', sumaTranzactii);
     } catch (error) {
       console.error('Error fetching transactions: ', error);
     }
@@ -139,68 +140,25 @@ export default function Home() {
     }
   };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  const setTransaction = (ibanCont, titlu, suma) => {
+  const setTransaction = (ibanCont, titlu, suma, plata) => {
     const timestamp = firebase.firestore.Timestamp.fromDate(new Date());
-      try {
-        var Transaction = {
-          ID_utilizator: 1,
-          IBAN_cont: ibanCont,
-          Nume_DC: titlu,
-          Suma: suma,
-          Desc: 'transfer intre conturi proprii',
-          Data: timestamp,
-          este_plata: 'da',
-        };
-        console.log(ibanCont, titlu, suma);
-        addData('tranzactii', Transaction);
-        getTransactions();
-        Alert.alert('Succes!', 'Tranzactia s-a efectuat cu succes.');
-      } catch (error) {
-        console.log(error);
-      }
-    };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    try {
+      var Transaction = {
+        ID_utilizator: 1,
+        IBAN_cont: ibanCont,
+        Nume_DC: titlu,
+        Suma: suma,
+        Desc: 'transfer intre conturi proprii',
+        Data: timestamp,
+        este_plata: plata,
+      };
+      console.log(ibanCont, titlu, suma, plata);
+      addData('tranzactii', Transaction);
+      Alert.alert('Succes!', 'Tranzactia s-a efectuat cu succes.');
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   //setare conturi
 
@@ -210,7 +168,7 @@ export default function Home() {
       try {
         const Account = {
           Title: titluContNou,
-          Sold: soldContNou,
+          Sold: parseFloat(soldContNou),
           DataCreare: data,
           ID_utilizator: 1,
           IBAN_cont: generateRomanianIBAN(),
@@ -220,7 +178,13 @@ export default function Home() {
           .then(() => {
             dispatch(setNewAccounts(newAccounts));
             addData('conturi', Account);
-            setTransaction(Account.IBAN_cont, Account.Title, Account.Sold);
+            setTransaction(
+              Account.IBAN_cont,
+              Account.Title,
+              parseFloat(Account.Sold),
+              'da',
+            );
+
             Alert.alert('Succes!', 'Contul a fost creat cu succes.');
           })
           .catch(err => console.log(err));
@@ -237,14 +201,18 @@ export default function Home() {
   //functie pentru apasarea butonului necesar crearii unui cont nou
   const onPressNewAccount = async () => {
     dispatch(setAccID(accounts.length + 1));
-    console.log(sold);
     setShowForm(true);
   };
   const deleteAccount = async id => {
     try {
       await deleteData('conturi', id);
-      getAccounts();
     } catch (error) {}
+  };
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    getAccounts();
+    setIsRefreshing(false);
   };
   return (
     <SafeAreaView style={styles.mainView}>
@@ -287,13 +255,19 @@ export default function Home() {
       </LinearGradient>
       <View style={styles.secondView}>
         <FlatList
+          refreshing={isRefreshing}
+          onRefresh={handleRefresh}
           style={styles.listaConturi}
           data={accounts}
           // eslint-disable-next-line react-native/no-inline-styles
           contentContainerStyle={{paddingBottom: 10}}
           renderItem={({item}) => (
             <Pressable
-              onLongPress={async () => deleteAccount(item.id)}
+              onLongPress={() => {
+                setTransaction(item.IBAN_cont, item.Title, item.Sold, 'nu');
+                deleteAccount(item.id);
+                getAccounts();
+              }}
               style={styles.contNouComponent}>
               <View style={styles.titluContNou}>
                 <Text>{item.Title}</Text>
@@ -336,7 +310,10 @@ export default function Home() {
             <IntroducereSuma
               visible={showIntroducere}
               onClose={() => setShowIntroducere(false)}
-              onConfirm={() => setAccounts('economii')}
+              onConfirm={() => {
+                setAccounts('economii');
+                getAccounts();
+              }}
               onAmountChange={handleAmountChange}
             />
             <TouchableOpacity style={styles.butonCont}>
