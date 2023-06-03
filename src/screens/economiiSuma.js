@@ -1,4 +1,3 @@
-/* eslint-disable react-native/no-inline-styles */
 /* eslint-disable prettier/prettier */
 import React, {useState} from 'react';
 import {Modal, View, TextInput, TouchableOpacity, Text} from 'react-native';
@@ -16,6 +15,7 @@ const IntroducereSuma = ({visible, onClose, onConfirm, onAmountChange}) => {
       transparent
       onRequestClose={onClose}>
       <View
+        // eslint-disable-next-line react-native/no-inline-styles
         style={{
           flex: 1,
           justifyContent: 'center',
@@ -23,6 +23,7 @@ const IntroducereSuma = ({visible, onClose, onConfirm, onAmountChange}) => {
           backgroundColor: 'rgba(0, 0, 0, 0.5)',
         }}>
         <View
+          // eslint-disable-next-line react-native/no-inline-styles
           style={{
             backgroundColor: 'white',
             padding: 20,
@@ -31,6 +32,7 @@ const IntroducereSuma = ({visible, onClose, onConfirm, onAmountChange}) => {
           <TextInput
             placeholder="Introdu suma dorita"
             onChangeText={onAmountChange}
+            // eslint-disable-next-line react-native/no-inline-styles
             style={{
               marginBottom: 10,
               padding: 10,

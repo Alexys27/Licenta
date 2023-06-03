@@ -73,6 +73,7 @@ export default function Home() {
     // getTransactions();
     getAccounts();
     getTransactions();
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -118,7 +119,7 @@ export default function Home() {
         sumaTranzactii += sumeTranzactii[i];
       }
       console.log(sumaTranzactii);
-      await updateSold('cont_principal', sumaTranzactii);
+      updateSold('cont_principal', sumaTranzactii);
     } catch (error) {
       console.error('Error fetching transactions: ', error);
     }
@@ -206,6 +207,8 @@ export default function Home() {
   const deleteAccount = async id => {
     try {
       await deleteData('conturi', id);
+      getTransactions();
+      getAccounts();
     } catch (error) {}
   };
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -266,7 +269,6 @@ export default function Home() {
               onLongPress={() => {
                 setTransaction(item.IBAN_cont, item.Title, item.Sold, 'nu');
                 deleteAccount(item.id);
-                getAccounts();
               }}
               style={styles.contNouComponent}>
               <View style={styles.titluContNou}>
@@ -286,7 +288,11 @@ export default function Home() {
         </TouchableOpacity>
         <Modal
           animationType="slide"
-          onRequestClose={() => setShowForm(false)}
+          onRequestClose={() => {
+            setShowForm(false);
+            getTransactions();
+            getAccounts();
+          }}
           visible={showTransferForm}>
           <View style={styles.newAccountData}>
             <TouchableOpacity style={styles.butonCont}>
@@ -310,10 +316,7 @@ export default function Home() {
             <IntroducereSuma
               visible={showIntroducere}
               onClose={() => setShowIntroducere(false)}
-              onConfirm={() => {
-                setAccounts('economii');
-                getAccounts();
-              }}
+              onConfirm={() => setAccounts('economii')}
               onAmountChange={handleAmountChange}
             />
             <TouchableOpacity style={styles.butonCont}>
