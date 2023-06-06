@@ -159,7 +159,6 @@ export default function Payments({navigation}) {
           Adresa: adresa,
           este_plata: tipTranzactie,
         };
-        console.log(Transaction);
         addData('tranzactii', Transaction);
 
         Alert.alert('Succes!', 'Tranzactia s-a efectuat cu succes.');
@@ -202,7 +201,7 @@ export default function Payments({navigation}) {
       'tranzactii',
       fromDate,
       toDate,
-    );
+    );    
     setFilteredTransactions(dataTranzactii);
   };
   const handleFromDateChange = (event, date) => {

@@ -7,6 +7,7 @@ import {
   getDocs,
   query,
   where,
+  orderBy,
   runTransaction,
 } from 'firebase/firestore';
 import {db} from './Firebase';
@@ -85,6 +86,32 @@ export const fetchTransactionsByDate = async (
     return [];
   }
 };
+export const fetchTransactionsByAccount = async (collectionName, accountId) => {
+  try {
+    const q = query(
+      collection(db, collectionName),
+      where('IBAN_cont', '==', accountId),
+    );
+    const querySnapshot = await getDocs(q);
+
+    // Map the query results to an array of transaction objects with formatted dates
+    const data = querySnapshot.docs.map(doc => {
+      const transaction = doc.data();
+      const Data = transaction.Data.toDate().toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: '2-digit',
+        year: '2-digit',
+      }); // format date as "DD/MM/YY" if transaction.Data exists
+      return {id: doc.id, ...transaction, Data};
+    });
+
+    return data;
+  } catch (e) {
+    console.error('Error fetching data: ', e);
+    return [];
+  }
+};
+
 export const updateSold = async (accountId, amount) => {
   try {
     const accountRef = doc(db, 'conturi', accountId);
