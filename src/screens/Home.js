@@ -50,7 +50,7 @@ firebase.initializeApp(firebaseConfig);
 export default function Home() {
   const [cardNumber, setCardNumber] = useState('XXXX XXXX XXXX 1445');
   const [viewCardNumber, setViewCardNumber] = useState(false);
-  const [sold, setSold] = useState();
+  const [sold, setSold] = useState(0);
   const [soldContNou, setSoldContNou] = useState(0);
   const [titluContNou, setTitluContNou] = useState('Cont Nou');
   const [showTransferForm, setShowForm] = useState(false);
@@ -118,8 +118,7 @@ export default function Home() {
       for (let i = 0; i < sumeTranzactii.length; i++) {
         sumaTranzactii += sumeTranzactii[i];
       }
-      console.log(sumaTranzactii);
-      updateSold('cont_principal', sumaTranzactii);
+      updateSold('cont_principal', parseFloat(sumaTranzactii.toFixed(2)));
     } catch (error) {
       console.error('Error fetching transactions: ', error);
     }
@@ -133,7 +132,7 @@ export default function Home() {
         const ID = acc.id;
         if (ID === 'cont_principal') {
           const soldCont = acc.Sold;
-          setSold(soldCont);
+          setSold(parseFloat(soldCont.toFixed(2)));
         }
       });
     } catch (error) {
@@ -222,7 +221,7 @@ export default function Home() {
       <Text style={styles.balance}>SOLD</Text>
       <Text style={styles.money}>{sold} RON</Text>
       <LinearGradient
-        colors={['#f7b267', '#f27059', '#f25c54']}
+        colors={['#CCE3DE', '#A4C3B2', '#6B9080']}
         style={styles.cardView}>
         <TouchableOpacity>
           <FontAwesome5
@@ -442,7 +441,7 @@ const styles = StyleSheet.create({
   },
   titluContNou: {
     flex: 0.3,
-    backgroundColor: 'yellow',
+    backgroundColor: '#88AA99',
     justifyContent: 'center',
     alignItems: 'center',
   },

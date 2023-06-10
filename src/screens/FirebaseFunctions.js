@@ -119,7 +119,7 @@ export const updateSold = async (accountId, amount) => {
       const accountSnapshot = await transaction.get(accountRef);
       const accountData = accountSnapshot.data();
       if (accountData) {
-        transaction.update(accountRef, {Sold: amount});
+        transaction.update(accountRef, {Sold: parseFloat(amount)});
       } else {
         throw new Error(`Account with ID ${accountId} not found`);
       }

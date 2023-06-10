@@ -201,7 +201,7 @@ export default function Payments({navigation}) {
       'tranzactii',
       fromDate,
       toDate,
-    );    
+    );
     setFilteredTransactions(dataTranzactii);
   };
   const handleFromDateChange = (event, date) => {
@@ -239,7 +239,7 @@ export default function Payments({navigation}) {
   };
 
   return (
-    <View style={styles.scroll}>
+    <View style={styles.paymetsPage}>
       <CustomModal
         visible={facturiModal}
         onRequestClose={handleCloseModal}
@@ -250,7 +250,6 @@ export default function Payments({navigation}) {
         setAdresa={handleSetAdresa}
         setDesc={handleSetDesc}
       />
-      <ScrollView nestedScrollEnabled>
         <Modal
           animationType="slide"
           transparent
@@ -315,38 +314,37 @@ export default function Payments({navigation}) {
             </View>
           </TouchableWithoutFeedback>
         </Modal>
-      </ScrollView>
 
-      <View style={styles.paymetsPage}>
-        <View style={styles.plati}>
-          <View style={styles.elementePlata}>
-            <Transfer
-              color="#a3b18a"
-              onPressButton={onPressHandler}
-              iconName="level-up-alt"
-            />
-            <Text style={styles.platiText}>Transfer</Text>
-          </View>
-          <View style={styles.elementePlata}>
-            <Transfer
-              color="#f25c54"
-              onPressButton={handleOpenModal}
-              iconName="file-invoice-dollar"
-            />
-            <Text style={styles.platiText}>Plata factura</Text>
-          </View>
-          <View style={styles.elementePlata}>
-            <Transfer
-              color="#f7b267"
-              onPressButton={handleOpenModal}
-              iconName="level-down-alt"
-            />
-            <Text style={styles.platiText}>Intre conturile</Text>
-            <Text style={styles.platiText}>mele</Text>
-          </View>
+      <View style={styles.plati}>
+        <View style={styles.elementePlata}>
+          <Transfer
+            color="#B8D3C8"
+            onPressButton={onPressHandler}
+            iconName="level-up-alt"
+          />
+          <Text style={styles.platiText}>Transfer</Text>
         </View>
-        <Button title="Cancel Filter" onPress={handleReset} />
-        <Button title="Filter" onPress={handleFilterByDate} />
+        <View style={styles.elementePlata}>
+          <Transfer
+            color="#A4C3B2"
+            onPressButton={handleOpenModal}
+            iconName="file-invoice-dollar"
+          />
+          <Text style={styles.platiText}>Plata factura</Text>
+        </View>
+        <View style={styles.elementePlata}>
+          <Transfer
+            color="#CCE3DE"
+            onPressButton={handleOpenModal}
+            iconName="level-down-alt"
+          />
+          <Text style={styles.platiText}>Intre conturile</Text>
+          <Text style={styles.platiText}>mele</Text>
+        </View>
+      </View>
+      {/* <Button title="Cancel Filter" onPress={handleReset} />
+        <Button title="Filter" onPress={handleFilterByDate} /> */}
+      <Modal visible={false}>
         <View style={styles.dateContainer}>
           <View style={styles.inputDateContainer}>
             <TouchableOpacity onPress={showFromDatepicker}>
@@ -387,57 +385,56 @@ export default function Payments({navigation}) {
             />
           )}
         </View>
-
-        <FlatList
-          refreshing={isRefreshing}
-          onRefresh={handleRefresh}
-          // initialScrollIndex={transactions.length - 1}
-          style={styles.listaTranzactii}
-          data={_.sortBy(filteredTransactions, transaction =>
-            moment(transaction.Data, 'DD/MM/YYYY'),
-          ).reverse()}
-          contentContainerStyle={{
-            flexGrow: 1,
-            padding: 15,
-          }}
-          renderItem={({item}) => (
-            <TouchableOpacity style={styles.tranzactie}>
-              <View style={styles.itemTranzactie}>
-                <FontAwesome5
-                  style={styles.cardIcon}
-                  name="money-check"
-                  size={30}
-                  color="#000"
-                />
-                <View style={styles.descriereTranzactie}>
-                  <Text style={styles.text_item_title}>{item.Data}</Text>
-                  <Text style={styles.text_item_title}>{item.Nume_DC}</Text>
-                  <Text style={styles.text_item}>{item.Desc}</Text>
-                </View>
-                <Text
-                  style={[
-                    styles.text_item_suma,
-                    item.este_plata === 'da'
-                      ? {color: 'red'}
-                      : {color: 'green'},
-                  ]}>
-                  {item.este_plata === 'da' ? '-' : '+'}
-                  {item.Suma}
-                </Text>
+      </Modal>
+      <FlatList
+        refreshing={isRefreshing}
+        onRefresh={handleRefresh}
+        // initialScrollIndex={transactions.length - 1}
+        style={styles.listaTranzactii}
+        data={_.sortBy(filteredTransactions, transaction =>
+          moment(transaction.Data, 'DD/MM/YYYY'),
+        ).reverse()}
+        contentContainerStyle={{
+          flexGrow: 1,
+          padding: 15,
+        }}
+        renderItem={({item}) => (
+          <TouchableOpacity style={styles.tranzactie}>
+            <View style={styles.itemTranzactie}>
+              <FontAwesome5
+                style={styles.cardIcon}
+                name="money-check"
+                size={30}
+                color="#000"
+              />
+              <View style={styles.descriereTranzactie}>
+                <Text style={styles.text_item_title}>{item.Data}</Text>
+                <Text style={styles.text_item_title}>{item.Nume_DC}</Text>
+                <Text style={styles.text_item}>{item.Desc}</Text>
               </View>
-            </TouchableOpacity>
-          )}
-          keyExtractor={(item, index) => index.toString()}
-        />
-      </View>
+              <Text
+                style={[
+                  styles.text_item_suma,
+                  item.este_plata === 'da' ? {color: 'red'} : {color: 'green'},
+                ]}>
+                {item.este_plata === 'da' ? '-' : '+'}
+                {item.Suma}
+              </Text>
+            </View>
+          </TouchableOpacity>
+        )}
+        keyExtractor={(item, index) => index.toString()}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  scrollViewStyle: {
+    flexGrow: 1,
+  },
   plati: {
-    marginTop: 50,
-    marginBottom: 60,
+    flex:0.5,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
@@ -455,6 +452,7 @@ const styles = StyleSheet.create({
   },
 
   paymetsPage: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#fff',
@@ -601,29 +599,24 @@ const styles = StyleSheet.create({
   },
   text_item_suma: {
     flex: 1,
-    marginRight: '10%',
     textAlign: 'right',
-    fontSize: 20,
+    fontSize: 15,
     color: 'red',
   },
   tranzactie: {
     borderBottomWidth: 0.2,
   },
   listaTranzactii: {
-    height: '68%',
-    marginTop: 20,
+    flex: 1,
     width: '100%',
-    borderColor: 'black',
   },
   dateContainer: {
-    flex: 1,
-    marginTop: 15,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
   },
   inputDateContainer: {
-    flex: 0.3,
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
