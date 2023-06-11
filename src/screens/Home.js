@@ -52,8 +52,9 @@ export default function Home() {
   const [viewCardNumber, setViewCardNumber] = useState(false);
   const [sold, setSold] = useState(0);
   const [soldContNou, setSoldContNou] = useState(0);
-  const [titluContNou, setTitluContNou] = useState('Cont Nou');
+  var titluContNou;
   const [showTransferForm, setShowForm] = useState(false);
+
   const {accounts, transactions} = useSelector(
     state => state.transactionReducer,
   );
@@ -163,36 +164,37 @@ export default function Home() {
   //setare conturi
 
   const [showIntroducere, setShowIntroducere] = useState(false);
+  const [showIntroducere1, setShowIntroducere1] = useState(false);
+  const [showIntroducere2, setShowIntroducere2] = useState(false);
+  const [showIntroducere3, setShowIntroducere3] = useState(false);
   const setAccounts = id => {
-    if (id === 'economii') {
-      try {
-        const Account = {
-          Title: titluContNou,
-          Sold: parseFloat(soldContNou),
-          DataCreare: data,
-          ID_utilizator: 1,
-          IBAN_cont: generateRomanianIBAN(),
-        };
-        const newAccounts = [...accounts, Account];
-        AsyncStorage.setItem('Accounts', JSON.stringify(newAccounts))
-          .then(() => {
-            dispatch(setNewAccounts(newAccounts));
-            addData('conturi', Account);
-            setTransaction(
-              Account.IBAN_cont,
-              Account.Title,
-              parseFloat(Account.Sold),
-              'da',
-            );
+    titluContNou = id;
+    console.log(titluContNou);
+    try {
+      const Account = {
+        Title: titluContNou,
+        Sold: parseFloat(soldContNou),
+        DataCreare: data,
+        ID_utilizator: 1,
+        IBAN_cont: generateRomanianIBAN(),
+      };
+      const newAccounts = [...accounts, Account];
+      AsyncStorage.setItem('Accounts', JSON.stringify(newAccounts))
+        .then(() => {
+          dispatch(setNewAccounts(newAccounts));
+          addData('conturi', Account);
+          setTransaction(
+            Account.IBAN_cont,
+            Account.Title,
+            parseFloat(Account.Sold),
+            'da',
+          );
 
-            Alert.alert('Succes!', 'Contul a fost creat cu succes.');
-          })
-          .catch(err => console.log(err));
-      } catch (error) {
-        console.log(error);
-      }
-    } else {
-      console.log('alta functie');
+          Alert.alert('Succes!', 'Contul a fost creat cu succes.');
+        })
+        .catch(err => console.log(err));
+    } catch (error) {
+      console.log(error);
     }
   };
   const handleAmountChange = value => {
@@ -274,7 +276,7 @@ export default function Home() {
                 <Text>{item.Title}</Text>
               </View>
               <View style={styles.elementeContNou}>
-                <Text style={styles.soldContCurent}>{item.Sold} RON</Text>
+                <Text style={styles.soldContCurent}>{parseFloat(item.Sold.toFixed(2))} RON</Text>
               </View>
             </Pressable>
           )}
@@ -315,7 +317,7 @@ export default function Home() {
             <IntroducereSuma
               visible={showIntroducere}
               onClose={() => setShowIntroducere(false)}
-              onConfirm={() => setAccounts('economii')}
+              onConfirm={() => setAccounts('Cont Economii')}
               onAmountChange={handleAmountChange}
             />
             <TouchableOpacity style={styles.butonCont}>
@@ -331,19 +333,37 @@ export default function Home() {
               <View style={styles.trimite}>
                 <TouchableOpacity
                   style={styles.sendButton}
-                  onPress={setAccounts}>
+                  onPress={() => setShowIntroducere1(true)}>
                   <Text> 3 luni = 5.2%/an</Text>
                 </TouchableOpacity>
+                <IntroducereSuma
+                  visible={showIntroducere1}
+                  onClose={() => setShowIntroducere1(false)}
+                  onConfirm={() => setAccounts('Depozit (5.2%)')}
+                  onAmountChange={handleAmountChange}
+                />
                 <TouchableOpacity
                   style={styles.sendButton}
-                  onPress={setAccounts}>
+                  onPress={() => setShowIntroducere2(true)}>
                   <Text> 6 luni = 6.1%/an</Text>
                 </TouchableOpacity>
+                <IntroducereSuma
+                  visible={showIntroducere2}
+                  onClose={() => setShowIntroducere2(false)}
+                  onConfirm={() => setAccounts('Depozit (6.1%)')}
+                  onAmountChange={handleAmountChange}
+                />
                 <TouchableOpacity
                   style={styles.sendButton}
-                  onPress={setAccounts}>
+                  onPress={() => setShowIntroducere3(true)}>
                   <Text> 12 luni = 7.5%/an</Text>
                 </TouchableOpacity>
+                <IntroducereSuma
+                  visible={showIntroducere3}
+                  onClose={() => setShowIntroducere3(false)}
+                  onConfirm={() => setAccounts('Depozit (7.5%)')}
+                  onAmountChange={handleAmountChange}
+                />
               </View>
             </TouchableOpacity>
           </View>
@@ -441,7 +461,7 @@ const styles = StyleSheet.create({
   },
   titluContNou: {
     flex: 0.3,
-    backgroundColor: '#88AA99',
+    backgroundColor: '#e29578',
     justifyContent: 'center',
     alignItems: 'center',
   },

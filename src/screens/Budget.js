@@ -41,18 +41,27 @@ export default function Budget({navigation}) {
       let alteleTotal = 0;
       console.log(fetchedTransactions);
       fetchedTransactions.map(transaction => {
-        if (
-          transaction.Desc === 'transfer intre conturi proprii' &&
+        if (transaction.Desc === 'Mancare' && transaction.este_plata === 'da') {
+          mancareTotal += transaction.Suma;
+        } else if (
+          transaction.Desc === 'Chirie' &&
           transaction.este_plata === 'da'
         ) {
-          mancareTotal += transaction.Suma;
-        } else if (transaction.Desc === 'chirie') {
           chirieTotal += transaction.Suma;
-        } else if (transaction.Desc === 'facturi') {
+        } else if (
+          transaction.Desc === 'Facturi' &&
+          transaction.este_plata === 'da'
+        ) {
           facturiTotal += transaction.Suma;
-        } else if (transaction.Desc === 'abonamente') {
+        } else if (
+          transaction.Desc === 'Abonamente' &&
+          transaction.este_plata === 'da'
+        ) {
           abonamenteTotal += transaction.Suma;
-        } else if (transaction.Desc === 'altele') {
+        } else if (
+          transaction.Desc === 'Altele' &&
+          transaction.este_plata === 'da'
+        ) {
           alteleTotal += transaction.Suma;
         }
       });
@@ -70,11 +79,11 @@ export default function Budget({navigation}) {
   };
 
   const expensesData = [
-    {category: 'mancare', amount: mancare, color: '#CCE3DE'},
-    {category: 'chirie', amount: chirie, color: '#B8D3C8'},
-    {category: 'facturi', amount: facturi, color: '#A4C3B2'},
-    {category: 'abonamente', amount: abonamente, color: '#88AA99'},
-    {category: 'altele', amount: altele, color: '#88AA99'},
+    {category: 'Mancare', amount: mancare, color: '#CCE3DE'},
+    {category: 'Chirie', amount: chirie, color: '#006d77'},
+    {category: 'Facturi', amount: facturi, color: '#A4C3B2'},
+    {category: 'Abonamente', amount: abonamente, color: '#e29578'},
+    {category: 'Altele', amount: altele, color: '#ffddd2'},
   ];
 
   if (!expensesData || expensesData.length === 0) {
@@ -116,7 +125,7 @@ export default function Budget({navigation}) {
         <PieChart
           widthAndHeight={250}
           series={expensesData.map(expense => expense.amount)}
-          sliceColor={['#CCE3DE', '#B8D3C8', '#A4C3B2', '#88AA99', '#88AA99']}
+          sliceColor={['#CCE3DE', '#006d77', '#A4C3B2', '#ffddd2', '#e29578']}
           coverRadius={0.6}
           coverFill={'#FFF'}
           accessor="amount"
@@ -145,7 +154,7 @@ const styles = StyleSheet.create({
   textHeader: {
     fontSize: 30,
     color: '#6b9080',
-    textAlign:'center',
+    textAlign: 'center',
   },
   scrollViewContent: {
     flexGrow: 1,

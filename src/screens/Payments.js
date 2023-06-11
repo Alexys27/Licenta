@@ -39,7 +39,8 @@ import {Timestamp} from 'firebase/firestore';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import {CustomModal} from './customModalTransfer';
 import moment from 'moment';
-
+import Filtering from '../components/filtering';
+import DropDownPicker from 'react-native-dropdown-picker';
 export default function Payments({navigation}) {
   const {transactions} = useSelector(state => state.transactionReducer);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -195,7 +196,19 @@ export default function Payments({navigation}) {
   const hideDatePicker = () => {
     setShowPicker(false);
   };
+  const handleFilterChange = query => {
+    // Perform filtering logic based on the query and update the transactions state accordingly
+    // For example, filter transactions whose name or description contains the query
+    const filtered = transactions.filter(
+      transaction =>
+        transaction.Nume_DC.includes(query) || transaction.Desc.includes(query),
+    );
 
+    // Update the filtered transactions
+    // Here, you can set the filtered transactions to a separate state variable or use it directly in your FlatList
+    // For simplicity, let's assume you have a separate state variable called 'filteredTransactions'
+    setFilteredTransactions(filtered);
+  };
   const handleFilterByDate = async () => {
     const dataTranzactii = await fetchTransactionsByDate(
       'tranzactii',
@@ -237,7 +250,9 @@ export default function Payments({navigation}) {
     setToDate('');
     setFilteredTransactions(transactions);
   };
-
+const handleChangeValue= value=>{
+  setDesc(value);
+}
   return (
     <View style={styles.paymetsPage}>
       <CustomModal
@@ -250,71 +265,88 @@ export default function Payments({navigation}) {
         setAdresa={handleSetAdresa}
         setDesc={handleSetDesc}
       />
-        <Modal
-          animationType="slide"
-          transparent
-          onRequestClose={() => SetShowForm(false)}
-          visible={showTransferForm}>
-          <TouchableWithoutFeedback onPress={() => SetShowForm(false)}>
-            <View style={styles.centeredForm}>
-              <View style={styles.tranzactieNoua}>
-                <View style={styles.titluForm}>
-                  <Text style={styles.textTitluForm}>Transfer nou</Text>
-                </View>
-                <KeyboardAvoidingView
-                  behavior={'padding'}
-                  style={styles.inputsView}>
-                  <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                    <ScrollView>
-                      <View>
-                        <Text style={styles.labels}>IN CONTUL *</Text>
-                        <TextInput
-                          autoCapitalize="characters"
-                          style={styles.ibanInput}
-                          placeholder="IBAN"
-                          onChangeText={value => setIBAN(value)}
-                        />
-                        <Text style={styles.labels}>NUME BENEFICIAR *</Text>
-                        <TextInput
-                          style={styles.numeInput}
-                          placeholder="ex: Maria"
-                          onChangeText={value => setName(value)}
-                        />
-                        <Text style={styles.labels}>SUMA *</Text>
-                        <TextInput
-                          keyboardType="numeric"
-                          style={styles.sumaInput}
-                          placeholder="00.00 RON"
-                          onChangeText={value => setSuma(parseFloat(value))}
-                        />
-                        <Text style={styles.labels}>ADRESA</Text>
-                        <TextInput
-                          style={styles.adresaInput}
-                          placeholder="Str., Bl., Nr., Ap."
-                          onChangeText={value => setAdresa(value)}
-                        />
-                        <Text style={styles.labels}>DESCRIERE</Text>
-                        <TextInput
-                          style={styles.descriereInput}
-                          placeholder="Transfer"
-                          onChangeText={value => setDesc(value)}
-                        />
-                        <View style={styles.trimite}>
-                          <TouchableOpacity
-                            onPress={setTransaction}
-                            style={styles.sendButton}>
-                            <Text>Trimite</Text>
-                          </TouchableOpacity>
-                        </View>
-                      </View>
-                    </ScrollView>
-                  </TouchableWithoutFeedback>
-                </KeyboardAvoidingView>
+      <Modal
+        animationType="slide"
+        transparent
+        onRequestClose={() => SetShowForm(false)}
+        visible={showTransferForm}>
+        <TouchableWithoutFeedback onPress={() => SetShowForm(false)}>
+          <View style={styles.centeredForm}>
+            <View style={styles.tranzactieNoua}>
+              <View style={styles.titluForm}>
+                <Text style={styles.textTitluForm}>Transfer nou</Text>
               </View>
-            </View>
-          </TouchableWithoutFeedback>
-        </Modal>
+              <KeyboardAvoidingView
+                behavior={'padding'}
+                style={styles.inputsView}>
+                <Text style={styles.labels}>DESCRIERE</Text>
+                <View style={styles.centeredDesc}>
+                  <DropDownPicker
+                    items={[
+                      {label: 'Mancare', value: 'Mancare'},
+                      {label: 'Chirie', value: 'Chirie'},
+                      {label: 'Facturi', value: 'Facturi'},
+                      {label: 'Abonamente', value: 'Abonamente'},
+                      {label: 'Altele', value: 'Altele'},
+                    ]}
+                    open={open}
+                    setOpen={setOpen}
+                    value={desc}
+                    containerStyle={styles.dropdownContainer}
+                    style={styles.dropdown}
+                    itemStyle={styles.dropdownItem}
+                    dropDownStyle={styles.dropdown}
+                    setValue={setDesc}
+                    onChangeValue={handleChangeValue}
+                    placeholder="Selecteaza categorie"
+                    zIndex={9999}
+                  />
+                </View>
+                <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                  <ScrollView>
+                    <View>
+                      <Text style={styles.labels}>IN CONTUL *</Text>
+                      <TextInput
+                        autoCapitalize="characters"
+                        style={styles.ibanInput}
+                        placeholder="IBAN"
+                        onChangeText={value => setIBAN(value)}
+                      />
+                      <Text style={styles.labels}>NUME BENEFICIAR *</Text>
+                      <TextInput
+                        style={styles.numeInput}
+                        placeholder="ex: Maria"
+                        onChangeText={value => setName(value)}
+                      />
+                      <Text style={styles.labels}>SUMA *</Text>
+                      <TextInput
+                        keyboardType="numeric"
+                        style={styles.sumaInput}
+                        placeholder="00.00 RON"
+                        onChangeText={value => setSuma(parseFloat(value))}
+                      />
+                      <Text style={styles.labels}>ADRESA</Text>
+                      <TextInput
+                        style={styles.adresaInput}
+                        placeholder="Str., Bl., Nr., Ap."
+                        onChangeText={value => setAdresa(value)}
+                      />
 
+                      <View style={styles.trimite}>
+                        <TouchableOpacity
+                          onPress={setTransaction}
+                          style={styles.sendButton}>
+                          <Text>Trimite</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  </ScrollView>
+                </TouchableWithoutFeedback>
+              </KeyboardAvoidingView>
+            </View>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
       <View style={styles.plati}>
         <View style={styles.elementePlata}>
           <Transfer
@@ -386,6 +418,7 @@ export default function Payments({navigation}) {
           )}
         </View>
       </Modal>
+      <Filtering onFilterChange={handleFilterChange} />
       <FlatList
         refreshing={isRefreshing}
         onRefresh={handleRefresh}
@@ -430,11 +463,32 @@ export default function Payments({navigation}) {
 }
 
 const styles = StyleSheet.create({
+  dropdownContainer: {
+    width:'80%',
+    justifyContent:'center',
+    height: 40,
+    marginVertical: 10,
+    borderRadius: 4,
+    backgroundColor: '#fff',
+    elevation:20,
+    zIndex:9999,
+  },
+  dropdown: {
+    backgroundColor: '#fff',
+    borderBottomLeftRadius: 4,
+    borderBottomRightRadius: 4,
+    borderTopLeftRadius: 4,
+    borderTopRightRadius: 4,
+    borderColor: '#fff',
+  },
+  dropdownItem: {
+    justifyContent: 'flex-start',
+  },
   scrollViewStyle: {
     flexGrow: 1,
   },
   plati: {
-    flex:0.5,
+    marginTop: 50,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
@@ -450,7 +504,10 @@ const styles = StyleSheet.create({
     height: 100,
     alignItems: 'center',
   },
-
+centeredDesc:{
+  alignItems: 'center',
+  zIndex:9999,
+},
   paymetsPage: {
     flex: 1,
     justifyContent: 'center',

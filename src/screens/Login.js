@@ -1,7 +1,19 @@
 /* eslint-disable prettier/prettier */
 import React, {useState} from 'react';
-import {View, TextInput, Button, StyleSheet, Text} from 'react-native';
+import {
+  View,
+  TextInput,
+  Button,
+  StyleSheet,
+  Text,
+  Image,
+  TouchableOpacity,
+  Alert
+} from 'react-native';
 import auth from '@react-native-firebase/auth';
+
+// Import your bank logo image
+import bankLogo from '../images/bank.png';
 
 const Login = ({navigation}) => {
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -9,6 +21,10 @@ const Login = ({navigation}) => {
   const [confirm, setConfirm] = useState(null);
 
   const sendCode = async () => {
+      if (!phoneNumber) {
+        Alert.alert('Itrodu un numar de telefon');
+        return;
+      }
     try {
       const confirmation = await auth().signInWithPhoneNumber(phoneNumber);
       setConfirm(confirmation);
@@ -18,6 +34,10 @@ const Login = ({navigation}) => {
   };
 
   const verifyCode = async () => {
+      if (!code) {
+        Alert.alert('Introdu codul de verificare');
+        return;
+      }
     try {
       await confirm.confirm(code);
       navigation.navigate('Home');
@@ -28,7 +48,10 @@ const Login = ({navigation}) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Enter phone number:</Text>
+      {/* Add the bank logo */}
+      <Image source={bankLogo} style={styles.logo} />
+
+      <Text style={styles.text}>Introdu numărul de telefon:</Text>
       <TextInput
         style={styles.input}
         onChangeText={text => setPhoneNumber(text)}
@@ -37,17 +60,21 @@ const Login = ({navigation}) => {
       />
       {confirm ? (
         <>
-          <Text style={styles.text}>Enter verification code:</Text>
+          <Text style={styles.text}>Introdu codul de verificare:</Text>
           <TextInput
             style={styles.input}
             onChangeText={text => setCode(text)}
             value={code}
             keyboardType="number-pad"
           />
-          <Button title="Verify Code" onPress={verifyCode} />
+          <TouchableOpacity style={styles.buton} onPress={verifyCode}>
+            <Text style={styles.buttonText}>Verificare cod</Text>
+          </TouchableOpacity>
         </>
       ) : (
-        <Button title="Send Code" onPress={sendCode} />
+        <TouchableOpacity style={styles.buton} onPress={sendCode}>
+          <Text style={styles.buttonText}>Trimite cod</Text>
+        </TouchableOpacity>
       )}
     </View>
   );
@@ -59,11 +86,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  logo: {
+    width: 150,
+    height: 150,
+    marginBottom: 20,
+  },
   text: {
     fontSize: 18,
     marginBottom: 10,
   },
   input: {
+    borderRadius: 5,
     width: '80%',
     height: 50,
     fontSize: 18,
@@ -71,6 +104,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     borderWidth: 1,
     borderColor: '#ccc',
+  },
+  buton: {
+    width: 120,
+    height: 35,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 5,
+    backgroundColor: '#e29578',
   },
 });
 
