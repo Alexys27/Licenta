@@ -49,6 +49,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 export default function Home() {
   const [cardNumber, setCardNumber] = useState('XXXX XXXX XXXX 1445');
+  const [cvv, setCvv] = useState('XXX');
   const [viewCardNumber, setViewCardNumber] = useState(false);
   const [sold, setSold] = useState(0);
   const [soldContNou, setSoldContNou] = useState(0);
@@ -235,8 +236,10 @@ export default function Home() {
               if (!viewCardNumber) {
                 setViewCardNumber(true);
                 setCardNumber('4256 2356 4474 1445');
+                setCvv('348');
               } else {
                 setCardNumber('XXXX XXXX XXXX 1445');
+                setCvv('XXX');
                 setViewCardNumber(false);
               }
             }}
@@ -246,7 +249,7 @@ export default function Home() {
           <Text style={styles.cardNr}>{cardNumber}</Text>
           <View style={styles.importantData}>
             <Text style={styles.expDate}>EXP: {'05/27'}</Text>
-            <Text style={styles.cvv}>CVV {'566'}</Text>
+            <Text style={styles.cvv}>CVV {cvv}</Text>
 
             <FontAwesome5
               style={styles.visa}
@@ -334,7 +337,7 @@ export default function Home() {
                 <TouchableOpacity
                   style={styles.sendButton}
                   onPress={() => setShowIntroducere1(true)}>
-                  <Text> 3 luni = 5.2%/an</Text>
+                  <Text> 3 luni = 5.2%</Text>
                 </TouchableOpacity>
                 <IntroducereSuma
                   visible={showIntroducere1}
@@ -345,7 +348,7 @@ export default function Home() {
                 <TouchableOpacity
                   style={styles.sendButton}
                   onPress={() => setShowIntroducere2(true)}>
-                  <Text> 6 luni = 6.1%/an</Text>
+                  <Text> 6 luni = 6.1%</Text>
                 </TouchableOpacity>
                 <IntroducereSuma
                   visible={showIntroducere2}
@@ -356,7 +359,7 @@ export default function Home() {
                 <TouchableOpacity
                   style={styles.sendButton}
                   onPress={() => setShowIntroducere3(true)}>
-                  <Text> 12 luni = 7.5%/an</Text>
+                  <Text> 12 luni = 7.5%</Text>
                 </TouchableOpacity>
                 <IntroducereSuma
                   visible={showIntroducere3}

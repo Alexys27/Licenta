@@ -5,9 +5,11 @@ import {
   SET_TRANSACTION,
   SET_ACCOUNT_ID,
   SET_ACCOUNT,
+  SET_FURNIZORI,
 } from './actions';
 
 const initialState = {
+  furnizori: [],
   accounts: [],
   transactions: [],
   accID: 1,
@@ -27,9 +29,10 @@ function transactionReducer(state = initialState, action) {
       return {...state, accounts: action.payload};
     case SET_ACCOUNT_ID:
       return {...state, accID: action.payload};
+    case SET_FURNIZORI:
+      return {...state, furnizori: action.payload};
     default:
       return state;
   }
 }
 export default transactionReducer;
-

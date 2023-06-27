@@ -59,37 +59,17 @@ export default function Payments({navigation}) {
   const [facturiModal, setFacturiModal] = useState(false);
   const [open, setOpen] = useState(false);
   const handleOpenModal = () => {
+    accounts.map(acc => {
+      if (acc.Title === 'Cont Principal') {
+        setIbanContCurent(acc.IBAN_cont);
+      }
+    });
     setFacturiModal(true);
   };
 
   const handleCloseModal = () => {
     setFacturiModal(false);
     console.log(facturiModal);
-  };
-
-  const handleSetTransaction = () => {
-    // Handle set transaction logic
-    setTransaction();
-  };
-
-  const handleSetIBAN = value => {
-    // Handle set IBAN logic
-  };
-
-  const handleSetName = value => {
-    // Handle set name logic
-  };
-
-  const handleSetSuma = value => {
-    // Handle set suma logic
-  };
-
-  const handleSetAdresa = value => {
-    // Handle set adresa logic
-  };
-
-  const handleSetDesc = value => {
-    // Handle set desc logic
   };
 
   useEffect(() => {
@@ -250,20 +230,43 @@ export default function Payments({navigation}) {
     setToDate('');
     setFilteredTransactions(transactions);
   };
-const handleChangeValue= value=>{
-  setDesc(value);
-}
+  const handleChangeValue = value => {
+    setDesc(value);
+  };
+  const handleIBANChange = value => {
+    setIBAN(value);
+    console.log(IBAN);
+  };
+  const handleNumeBeneficiarChange = value => {
+    setName(value);
+    console.log(name);
+  };
+  const handleSetSuma = value => {
+    setSuma(value);
+    console.log(suma);
+  };
+  const handleSetTransaction = () => {
+    // Handle set transaction logic
+    console.log(suma);
+    console.log(IBAN);
+    console.log(name);
+    console.log(desc);
+    console.log(ibanContCurent);
+    setTransaction();
+  };
+  const handlesetDescriere = value => {
+    setDesc(value);
+  };
   return (
     <View style={styles.paymetsPage}>
       <CustomModal
         visible={facturiModal}
         onRequestClose={handleCloseModal}
         setTransaction={handleSetTransaction}
-        setIBAN={handleSetIBAN}
-        setName={handleSetName}
         setSuma={handleSetSuma}
-        setAdresa={handleSetAdresa}
-        setDesc={handleSetDesc}
+        onIBANChange={handleIBANChange}
+        onNumeBeneficiarChange={handleNumeBeneficiarChange}
+        setDescriere={handlesetDescriere}
       />
       <Modal
         animationType="slide"
@@ -279,7 +282,7 @@ const handleChangeValue= value=>{
               <KeyboardAvoidingView
                 behavior={'padding'}
                 style={styles.inputsView}>
-                <Text style={styles.labels}>DESCRIERE</Text>
+                <Text style={styles.labels}>DESCRIERE *</Text>
                 <View style={styles.centeredDesc}>
                   <DropDownPicker
                     items={[
@@ -464,14 +467,14 @@ const handleChangeValue= value=>{
 
 const styles = StyleSheet.create({
   dropdownContainer: {
-    width:'80%',
-    justifyContent:'center',
+    width: '80%',
+    justifyContent: 'center',
     height: 40,
     marginVertical: 10,
     borderRadius: 4,
     backgroundColor: '#fff',
-    elevation:20,
-    zIndex:9999,
+    elevation: 20,
+    zIndex: 9999,
   },
   dropdown: {
     backgroundColor: '#fff',
@@ -504,10 +507,10 @@ const styles = StyleSheet.create({
     height: 100,
     alignItems: 'center',
   },
-centeredDesc:{
-  alignItems: 'center',
-  zIndex:9999,
-},
+  centeredDesc: {
+    alignItems: 'center',
+    zIndex: 9999,
+  },
   paymetsPage: {
     flex: 1,
     justifyContent: 'center',

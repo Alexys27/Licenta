@@ -1,5 +1,7 @@
 /* eslint-disable prettier/prettier */
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
+import {setFurnizori} from '../../redux/actions';
+import {useDispatch, useSelector} from 'react-redux';
 import {
   Modal,
   StyleSheet,
@@ -12,21 +14,39 @@ import {
   KeyboardAvoidingView,
   Keyboard,
 } from 'react-native';
-import DropDownPicker from 'react-native-dropdown-picker';
 
+import DropDownPicker from 'react-native-dropdown-picker';
+import {fetchData} from './FirebaseFunctions';
 export const CustomModal = ({
   visible,
   onRequestClose,
   setTransaction,
-  setIBAN,
-  setName,
   setSuma,
-  setAdresa,
-  setDesc,
+  onIBANChange,
+  onNumeBeneficiarChange,
+  setDescriere,
 }) => {
-  const [selectedValue, setSelectedValue] = useState('1');
+  const {furnizori} = useSelector(state => state.transactionReducer);
+
+  const dispatch = useDispatch();
+  useEffect(() => {
+    getFurnizori();
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const [selectedValue, setSelectedValue] = useState(null);
+  const [iban, setIBAN] = useState('');
+  const [numeBeneficiar, setName] = useState('');
   const [open, setOpen] = useState(false);
 
+  const getFurnizori = async () => {
+    try {
+      const firebaseFurnizori = await fetchData('furnizori');
+      dispatch(setFurnizori(firebaseFurnizori));
+    } catch (error) {
+      console.error('Error fetching furnizori: ', error);
+    }
+  };
   return (
     <Modal
       animationType="slide"
@@ -47,17 +67,26 @@ export const CustomModal = ({
                 <DropDownPicker
                   open={open}
                   value={selectedValue}
-                  items={[
-                    {label: '1', value: '1'},
-                    {label: '2', value: '2'},
-                    {label: '3', value: '3'},
-                  ]}
+                  items={furnizori.map(furnizor => ({
+                    label: furnizor.Nume_furnizor,
+                    value: furnizor.Nume_furnizor,
+                    iban: furnizor.IBAN_furnizor,
+                  }))}
                   setOpen={setOpen}
                   setValue={setSelectedValue}
                   style={styles.dropdown}
                   textStyle={styles.dropdownText}
                   containerStyle={styles.dropdownContainer}
                   itemStyle={styles.dropdownItem}
+                  onSelectItem={item => {
+                    setSelectedValue(item.value);
+                    setIBAN(item.iban || '');
+                    setName(item.value || '');
+                    onNumeBeneficiarChange(item.value);
+                    onIBANChange(item.iban);
+                    setDescriere('Facturi');
+                    console.log(iban, numeBeneficiar);
+                  }}
                 />
               </View>
               <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -68,13 +97,25 @@ export const CustomModal = ({
                       autoCapitalize="characters"
                       style={styles.ibanInput}
                       placeholder="IBAN"
-                      onChangeText={value => setIBAN(value)}
+                      onChangeText={value => {
+                        setIBAN(value);
+                        // Pass the updated value to the prop callback
+                      }}
+                      value={iban}
                     />
                     <Text style={styles.labels}>NUME BENEFICIAR *</Text>
                     <TextInput
                       style={styles.numeInput}
-                      placeholder="ex: Maria"
-                      onChangeText={value => setName(value)}
+                      placeholder="Nume furnizor"
+                      onChangeText={value => {
+                        setName(value); // Pass the updated value to the prop callback
+                      }}
+                      value={numeBeneficiar}
+                    />
+                    <Text style={styles.labels}>NUMAR FACTURA *</Text>
+                    <TextInput
+                      style={styles.descriereInput}
+                      placeholder="ex: 111222333"
                     />
                     <Text style={styles.labels}>SUMA *</Text>
                     <TextInput
@@ -83,17 +124,12 @@ export const CustomModal = ({
                       placeholder="00.00 RON"
                       onChangeText={value => setSuma(parseFloat(value))}
                     />
-                    <Text style={styles.labels}>ADRESA</Text>
-                    <TextInput
-                      style={styles.adresaInput}
-                      placeholder="Str., Bl., Nr., Ap."
-                      onChangeText={value => setAdresa(value)}
-                    />
+
                     <Text style={styles.labels}>DESCRIERE</Text>
                     <TextInput
                       style={styles.descriereInput}
                       placeholder="Transfer"
-                      onChangeText={value => setDesc(value)}
+                      value="Facturi"
                     />
                     <View style={styles.trimite}>
                       <TouchableOpacity
