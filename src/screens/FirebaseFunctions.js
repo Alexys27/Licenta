@@ -9,6 +9,7 @@ import {
   where,
   orderBy,
   runTransaction,
+  Timestamp,
 } from 'firebase/firestore';
 import {db} from './Firebase';
 
@@ -64,10 +65,15 @@ export const fetchTransactionsByDate = async (
   toDate,
 ) => {
   try {
+    const fromTimestamp = Timestamp.fromDate(fromDate);
+    const toTimestamp = Timestamp.fromDate(
+      new Date(toDate.getTime() + 24 * 60 * 60 * 1000), // Add 24 hours to toDate
+    );
+
     const q = query(
       collection(db, collectionName),
-      where('Data', '>=', fromDate),
-      where('Data', '<=', toDate),
+      where('Data', '>=', fromTimestamp),
+      where('Data', '<', toTimestamp), // Use "<" instead of "<="
     );
     const querySnapshot = await getDocs(q);
     // Map the query results to an array of transaction objects with formatted dates

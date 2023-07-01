@@ -15,6 +15,7 @@ import Share from 'react-native-share';
 import _ from 'lodash';
 import moment from 'moment';
 import Filtering from '../components/filtering';
+import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 
 const Reports = () => {
   const [open, setOpen] = useState(false);
@@ -117,7 +118,12 @@ const Reports = () => {
         open={open}
         value={selectedAccount}
         items={accounts.map(account => ({
-          label: [account.Title, ' - ', parseFloat(account.Sold.toFixed(2)), ' RON'],
+          label: [
+            account.Title,
+            ' - ',
+            parseFloat(account.Sold.toFixed(2)),
+            ' RON',
+          ],
           value: account.IBAN_cont,
           color: 'black',
         }))}
@@ -127,10 +133,20 @@ const Reports = () => {
         labelStyle={styles.dropdownLabel}
       />
       <Text style={styles.label}> Filtrează:</Text>
-      <Filtering
-        onFilterChange={setSearchQuery}
-        placeholder="Search by name or description"
-      />
+      <View style={styles.FilterView}>
+        <TouchableOpacity>
+          <FontAwesome5Icon
+            style={styles.filterIcon}
+            name="filter"
+            size={20}
+            color={'#e29578'}
+          />
+        </TouchableOpacity>
+        <Filtering
+          onFilterChange={setSearchQuery}
+          placeholder="Search by name or description"
+        />
+      </View>
       <TouchableOpacity style={styles.button} onPress={handleExcelExport}>
         <Text style={styles.text}>Generare extras de cont (excel)</Text>
       </TouchableOpacity>
@@ -176,6 +192,12 @@ const styles = StyleSheet.create({
   text: {
     color: 'white',
     fontWeight: 'bold',
+  },
+  FilterView: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 40,
   },
 });
 

@@ -16,6 +16,7 @@ import {
   Platform,
   Button,
 } from 'react-native';
+import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import {useDispatch, useSelector} from 'react-redux';
@@ -41,6 +42,7 @@ import {CustomModal} from './customModalTransfer';
 import moment from 'moment';
 import Filtering from '../components/filtering';
 import DropDownPicker from 'react-native-dropdown-picker';
+import TransactionsFilterModal from './modalFiltrare';
 export default function Payments({navigation}) {
   const {transactions} = useSelector(state => state.transactionReducer);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -257,6 +259,16 @@ export default function Payments({navigation}) {
   const handlesetDescriere = value => {
     setDesc(value);
   };
+  const [filterModal, setShowFilterModal] = useState(false);
+  const showFilterModal = () => {
+    setShowFilterModal(true);
+  };
+  const hideFilterModal = () => {
+    setShowFilterModal(false);
+  };
+  const handleTransactionsFilter = filteredData => {
+    setFilteredTransactions(filteredData);
+  };
   return (
     <View style={styles.paymetsPage}>
       <CustomModal
@@ -377,51 +389,23 @@ export default function Payments({navigation}) {
           <Text style={styles.platiText}>mele</Text>
         </View>
       </View>
-      {/* <Button title="Cancel Filter" onPress={handleReset} />
-        <Button title="Filter" onPress={handleFilterByDate} /> */}
-      <Modal visible={false}>
-        <View style={styles.dateContainer}>
-          <View style={styles.inputDateContainer}>
-            <TouchableOpacity onPress={showFromDatepicker}>
-              <FontAwesome5 name="calendar" size={20} color="#000" />
-              <TextInput
-                placeholder="De la"
-                style={styles.input}
-                value={fromDate ? fromDate.toLocaleDateString('en-GB') : ''}
-                editable={false}
-              />
-            </TouchableOpacity>
-          </View>
-          <View style={styles.inputDateContainer}>
-            <TouchableOpacity onPress={showToDatepicker}>
-              <FontAwesome5 name="calendar" size={20} />
-              <TextInput
-                placeholder="Pana la"
-                style={styles.input}
-                value={toDate ? toDate.toLocaleDateString('en-GB') : ''}
-                editable={false}
-              />
-            </TouchableOpacity>
-          </View>
-          {showPicker && (
-            <DateTimePicker
-              value={fromDate || toDate || new Date()}
-              mode="date"
-              minimumDate={new Date('2000-01-01')}
-              maximumDate={new Date()}
-              onChange={(event, date) => {
-                hideDatePicker();
-                if (showPicker === 'from') {
-                  handleFromDateChange(event, date);
-                } else {
-                  handleToDateChange(event, date);
-                }
-              }}
-            />
-          )}
-        </View>
-      </Modal>
-      <Filtering onFilterChange={handleFilterChange} />
+
+      <View style={styles.FilterView}>
+        <TouchableOpacity onPress={showFilterModal}>
+          <FontAwesome5Icon
+            style={styles.filterIcon}
+            name="filter"
+            size={20}
+            color={'#e29578'}
+          />
+        </TouchableOpacity>
+        <Filtering onFilterChange={handleFilterChange} />
+      </View>
+      <TransactionsFilterModal
+        visible={filterModal}
+        onClose={hideFilterModal}
+        onTransactionsFilter={handleTransactionsFilter}
+      />
       <FlatList
         refreshing={isRefreshing}
         onRefresh={handleRefresh}
@@ -615,6 +599,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     padding: 10,
     alignItems: 'center',
+  },
+  FilterView: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 40,
   },
   itemText: {
     fontSize: 25,

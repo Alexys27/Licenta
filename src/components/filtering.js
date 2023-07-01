@@ -13,9 +13,6 @@ const Filtering = ({onFilterChange}) => {
 
   return (
     <View style={styles.filterView}>
-      <TouchableOpacity>
-        <FontAwesome5Icon style ={styles.filterIcon} name="filter" size={20} color={'#e29578'}/>
-      </TouchableOpacity>
 
       <TextInput
         style={styles.filterInput}
