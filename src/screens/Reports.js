@@ -39,7 +39,6 @@ const Reports = () => {
 
   const handleAccountChange = value => {
     setSelectedAccount(value);
-
   };
 
   const handleExcelExport = async () => {
