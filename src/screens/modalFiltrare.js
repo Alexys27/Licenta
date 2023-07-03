@@ -30,13 +30,7 @@ const TransactionsFilterModal = ({visible, onClose, onTransactionsFilter}) => {
 
   const applyFilter = () => {
     // Manipulate the selected options and dates here
-    console.log('Selected Options:', incasariSelected, debitariSelected);
-    console.log('Selected Period:', selectedPeriod);
-    console.log('From Date:', fromDate); //toLocalStringDate en-gb
-    console.log('To Date:', toDate);
     handleFilterByDate();
-
-    console.log(transactionsByDate);
     onClose();
   };
   const handleFilterByDate = async () => {

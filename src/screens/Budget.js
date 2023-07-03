@@ -20,6 +20,7 @@ export default function Budget({navigation}) {
   const [refreshing, setRefreshing] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(null);
   const [open, setOpen] = useState(false);
+  const [totalSpentByMonth, setTotalSpentByMonth] = useState({});
   const monthOptions = [
     {label: 'Luna curenta', value: 0},
     {label: 'Cu 1 luna in urma', value: 1},
@@ -70,6 +71,7 @@ export default function Budget({navigation}) {
         if (
           transaction.este_plata === 'da' &&
           typeof transaction.Desc === 'string' &&
+          transaction.Desc !== 'transfer intre conturi proprii' &&
           typeof transaction.Suma === 'number'
         ) {
           if (!expensesByCategory[transaction.Desc]) {
@@ -94,7 +96,18 @@ export default function Budget({navigation}) {
       setExpensesData([]);
     }
   };
-
+  const renderTotalSpentAmount = () => {
+    const totalAmount = expensesData.reduce(
+      (sum, expense) => sum + expense.amount,
+      0,
+    );
+    if (selectedMonth !== null) {
+     // Extract the desired value from the object
+      return <Text style={styles.totalSpentAmount}>Cheltuieli totale: {totalAmount}</Text>;
+    } else {
+      return null;
+    }
+  };
   const getRandomColor = () => {
     const letters = '0123456789ABCDEF';
     let color = '#';
@@ -156,6 +169,7 @@ export default function Budget({navigation}) {
                 horizontal={true}
                 contentContainerStyle={styles.legendContainer}
               />
+              {renderTotalSpentAmount()}
             </>
           ) : (
             <Text style={styles.faraDate}>
@@ -193,8 +207,8 @@ const styles = StyleSheet.create({
   },
   faraDate: {
     fontSize: 20,
-    textAlign:'center',
-    color:'red',
+    textAlign: 'center',
+    color: 'red',
   },
   headerBuget: {
     flex: 1,
@@ -237,5 +251,11 @@ const styles = StyleSheet.create({
   },
   legendText: {
     fontSize: 20,
+  },
+  totalSpentAmount: {
+    fontSize: 20,
+    textAlign: 'center',
+    marginTop: 10,
+    marginBottom: 10,
   },
 });

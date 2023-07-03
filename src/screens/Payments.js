@@ -71,7 +71,6 @@ export default function Payments({navigation}) {
 
   const handleCloseModal = () => {
     setFacturiModal(false);
-    console.log(facturiModal);
   };
 
   useEffect(() => {
@@ -129,6 +128,8 @@ export default function Payments({navigation}) {
       Alert.alert('Atentie!', 'Toate campurile notate cu (*) sunt obligatorii');
     } else if (IBAN.length !== 24) {
       Alert.alert('Eroare!', 'Introduceti un IBAN corect!');
+    } else if (suma <= 0){
+      Alert.alert('Eroare!', 'Suma trebuie sa fie mai mare decat 0!');
     } else {
       try {
         var Transaction = {
@@ -237,23 +238,16 @@ export default function Payments({navigation}) {
   };
   const handleIBANChange = value => {
     setIBAN(value);
-    console.log(IBAN);
   };
   const handleNumeBeneficiarChange = value => {
     setName(value);
-    console.log(name);
+
   };
   const handleSetSuma = value => {
     setSuma(value);
-    console.log(suma);
   };
   const handleSetTransaction = () => {
     // Handle set transaction logic
-    console.log(suma);
-    console.log(IBAN);
-    console.log(name);
-    console.log(desc);
-    console.log(ibanContCurent);
     setTransaction();
   };
   const handlesetDescriere = value => {

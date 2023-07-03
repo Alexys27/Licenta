@@ -16,6 +16,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import LinearGradient from 'react-native-linear-gradient';
+import PopupComponent from './cardDetails';
 import {
   setTransactions,
   setAccID,
@@ -55,7 +56,8 @@ export default function Home() {
   const [soldContNou, setSoldContNou] = useState(0);
   var titluContNou;
   const [showTransferForm, setShowForm] = useState(false);
-
+  const [visiblePopUp, setVisiblePopUp] = useState(false);
+  const [cardDet, setCardDet] = useState('Detalii card');
   const {accounts, transactions} = useSelector(
     state => state.transactionReducer,
   );
@@ -134,6 +136,13 @@ export default function Home() {
         const ID = acc.id;
         if (ID === 'cont_principal') {
           const soldCont = acc.Sold;
+          setCardDet(
+            'IBAN:' +
+              ` ${acc.IBAN_cont}` +
+              '\nTitular: Mesina Alexandra' +
+              '\nBanca: LEX BANK' +
+              '\nValuta: Lei',
+          );
           setSold(parseFloat(soldCont.toFixed(2)));
         }
       });
@@ -144,21 +153,24 @@ export default function Home() {
 
   const setTransaction = (ibanCont, titlu, suma, plata) => {
     const timestamp = firebase.firestore.Timestamp.fromDate(new Date());
-    try {
-      var Transaction = {
-        ID_utilizator: 1,
-        IBAN_cont: ibanCont,
-        Nume_DC: titlu,
-        Suma: suma,
-        Desc: 'transfer intre conturi proprii',
-        Data: timestamp,
-        este_plata: plata,
-      };
-      console.log(ibanCont, titlu, suma, plata);
-      addData('tranzactii', Transaction);
-      Alert.alert('Succes!', 'Tranzactia s-a efectuat cu succes.');
-    } catch (error) {
-      console.log(error);
+    if (suma <= 0) {
+      Alert.alert('Eroare!', 'Suma trebuie sa fie mai mare decat 0!');
+    } else {
+      try {
+        var Transaction = {
+          ID_utilizator: 1,
+          IBAN_cont: ibanCont,
+          Nume_DC: titlu,
+          Suma: suma,
+          Desc: 'transfer intre conturi proprii',
+          Data: timestamp,
+          este_plata: plata,
+        };
+        addData('tranzactii', Transaction);
+        Alert.alert('Succes!', 'Tranzactia s-a efectuat cu succes.');
+      } catch (error) {
+        console.log(error);
+      }
     }
   };
 
@@ -170,32 +182,36 @@ export default function Home() {
   const [showIntroducere3, setShowIntroducere3] = useState(false);
   const setAccounts = id => {
     titluContNou = id;
-    console.log(titluContNou);
-    try {
-      const Account = {
-        Title: titluContNou,
-        Sold: parseFloat(soldContNou),
-        DataCreare: data,
-        ID_utilizator: 1,
-        IBAN_cont: generateRomanianIBAN(),
-      };
-      const newAccounts = [...accounts, Account];
-      AsyncStorage.setItem('Accounts', JSON.stringify(newAccounts))
-        .then(() => {
-          dispatch(setNewAccounts(newAccounts));
-          addData('conturi', Account);
-          setTransaction(
-            Account.IBAN_cont,
-            Account.Title,
-            parseFloat(Account.Sold),
-            'da',
-          );
+    if (soldContNou <= 0) {
+      Alert.alert('Eroare!', 'Suma introdusa trebuie sa fie mai mare decat 0');
+      return;
+    } else {
+      try {
+        const Account = {
+          Title: titluContNou,
+          Sold: parseFloat(soldContNou),
+          DataCreare: data,
+          ID_utilizator: 1,
+          IBAN_cont: generateRomanianIBAN(),
+        };
+        const newAccounts = [...accounts, Account];
+        AsyncStorage.setItem('Accounts', JSON.stringify(newAccounts))
+          .then(() => {
+            dispatch(setNewAccounts(newAccounts));
+            addData('conturi', Account);
+            setTransaction(
+              Account.IBAN_cont,
+              Account.Title,
+              parseFloat(Account.Sold),
+              'da',
+            );
 
-          Alert.alert('Succes!', 'Contul a fost creat cu succes.');
-        })
-        .catch(err => console.log(err));
-    } catch (error) {
-      console.log(error);
+            Alert.alert('Succes!', 'Contul a fost creat cu succes.');
+          })
+          .catch(err => console.log(err));
+      } catch (error) {
+        console.log(error);
+      }
     }
   };
   const handleAmountChange = value => {
@@ -219,47 +235,60 @@ export default function Home() {
     getAccounts();
     setIsRefreshing(false);
   };
+  const handleOpenPopup = () => {
+    setVisiblePopUp(true);
+  };
+  const closePopup = () => {
+    setVisiblePopUp(false);
+  };
   return (
     <SafeAreaView style={styles.mainView}>
       <Text style={styles.balance}>SOLD</Text>
       <Text style={styles.money}>{sold} RON</Text>
-      <LinearGradient
-        colors={['#CCE3DE', '#A4C3B2', '#6B9080']}
-        style={styles.cardView}>
-        <TouchableOpacity>
-          <FontAwesome5
-            style={styles.visible}
-            name="low-vision"
-            size={20}
-            color={'#333'}
-            onPress={() => {
-              if (!viewCardNumber) {
-                setViewCardNumber(true);
-                setCardNumber('4256 2356 4474 1445');
-                setCvv('348');
-              } else {
-                setCardNumber('XXXX XXXX XXXX 1445');
-                setCvv('XXX');
-                setViewCardNumber(false);
-              }
-            }}
-          />
-        </TouchableOpacity>
-        <View>
-          <Text style={styles.cardNr}>{cardNumber}</Text>
-          <View style={styles.importantData}>
-            <Text style={styles.expDate}>EXP: {'05/27'}</Text>
-            <Text style={styles.cvv}>CVV {cvv}</Text>
-
+      <PopupComponent
+        isVisible={visiblePopUp}
+        textToCopy={cardDet}
+        onClose={closePopup}
+      />
+      <TouchableOpacity onLongPress={handleOpenPopup} style={styles.cardView}>
+        <LinearGradient
+          style={styles.cardView}
+          colors={['#CCE3DE', '#A4C3B2', '#6B9080']}>
+          <TouchableOpacity>
             <FontAwesome5
-              style={styles.visa}
-              name="cc-visa"
+              style={styles.visible}
+              name="low-vision"
               size={20}
               color={'#333'}
+              onPress={() => {
+                if (!viewCardNumber) {
+                  setViewCardNumber(true);
+                  setCardNumber('4256 2356 4474 1445');
+                  setCvv('348');
+                } else {
+                  setCardNumber('XXXX XXXX XXXX 1445');
+                  setCvv('XXX');
+                  setViewCardNumber(false);
+                }
+              }}
             />
+          </TouchableOpacity>
+          <View>
+            <Text style={styles.cardNr}>{cardNumber}</Text>
+            <View style={styles.importantData}>
+              <Text style={styles.expDate}>EXP: {'05/27'}</Text>
+              <Text style={styles.cvv}>CVV {cvv}</Text>
+
+              <FontAwesome5
+                style={styles.visa}
+                name="cc-visa"
+                size={20}
+                color={'#333'}
+              />
+            </View>
           </View>
-        </View>
-      </LinearGradient>
+        </LinearGradient>
+      </TouchableOpacity>
       <View style={styles.secondView}>
         <FlatList
           refreshing={isRefreshing}
@@ -279,7 +308,9 @@ export default function Home() {
                 <Text>{item.Title}</Text>
               </View>
               <View style={styles.elementeContNou}>
-                <Text style={styles.soldContCurent}>{parseFloat(item.Sold.toFixed(2))} RON</Text>
+                <Text style={styles.soldContCurent}>
+                  {parseFloat(item.Sold.toFixed(2))} RON
+                </Text>
               </View>
             </Pressable>
           )}
@@ -399,11 +430,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cardView: {
-    flex: 0.6,
+    flex: 0.8,
     borderRadius: 25,
-    marginTop: '5%',
-    marginRight: '5%',
-    marginLeft: '5%',
+    margin: 2,
   },
   importantData: {
     flexDirection: 'row',
