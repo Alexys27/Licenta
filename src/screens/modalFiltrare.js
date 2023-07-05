@@ -132,24 +132,26 @@ const TransactionsFilterModal = ({visible, onClose, onTransactionsFilter}) => {
       }}>
       <View style={styles.container}>
         <Text style={styles.title}>Filtrare tranzactii</Text>
-        <TouchableOpacity onPress={onClose}>
-          <Text style={styles.cancelButton}>Anuleaza</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={applyFilter}>
-          <Text style={styles.applyButton}>Aplica</Text>
-        </TouchableOpacity>
+        <View style={styles.alegere}>
+          <TouchableOpacity onPress={onClose}>
+            <Text style={styles.cancelButton}>Anulează</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={applyFilter}>
+            <Text style={styles.applyButton}>Aplică</Text>
+          </TouchableOpacity>
+        </View>
         <TouchableOpacity
           onPress={toggleIncasari}
           style={styles.optionContainer}>
           <Text style={styles.optionText}>
-            {incasariSelected ? '✔' : ''} incasari
+            {incasariSelected ? '✔️' : ''} încasări
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={toggleDebitari}
           style={styles.optionContainer}>
           <Text style={styles.optionText}>
-            {debitariSelected ? '✔' : ''} debitari{' '}
+            {debitariSelected ? '✔️' : ''} debitări{' '}
           </Text>
         </TouchableOpacity>
         <View style={styles.periodContainer}>
@@ -161,7 +163,7 @@ const TransactionsFilterModal = ({visible, onClose, onTransactionsFilter}) => {
                 styles.periodText,
                 selectedPeriod === '3 days' && styles.selectedPeriodText,
               ]}>
-              {selectedPeriod === '3 days' ? '✔' : ''} 3 days
+              {selectedPeriod === '3 days' ? '✔️' : ''} 3 zile
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -172,7 +174,7 @@ const TransactionsFilterModal = ({visible, onClose, onTransactionsFilter}) => {
                 styles.periodText,
                 selectedPeriod === '7 days' && styles.selectedPeriodText,
               ]}>
-              {selectedPeriod === '7 days' ? '✔' : ''} 7 days
+              {selectedPeriod === '7 days' ? '✔️' : ''} 7 zile
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -183,15 +185,16 @@ const TransactionsFilterModal = ({visible, onClose, onTransactionsFilter}) => {
                 styles.periodText,
                 selectedPeriod === '30 days' && styles.selectedPeriodText,
               ]}>
-              {selectedPeriod === '30 days' ? '✔' : ''} 30 days
+              {selectedPeriod === '30 days' ? '✔️' : ''} 30 de zile
             </Text>
           </TouchableOpacity>
         </View>
+        <Text>(SAU) Alege perioada</Text>
         <View style={styles.dateInputContainer}>
           <TouchableOpacity onPress={openFromDatepicker}>
             <TextInput
               style={styles.dateInput}
-              placeholder="From Date"
+              placeholder="Din data "
               value={fromDate ? fromDate.toLocaleDateString('en-GB') : ''}
               editable={false}
             />
@@ -254,10 +257,13 @@ const styles = StyleSheet.create({
   optionContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
     marginBottom: 8,
   },
   optionText: {
-    fontSize: 16,
+    fontSize: 18,
+    color: 'black',
     marginLeft: 8,
   },
   periodContainer: {
@@ -268,7 +274,8 @@ const styles = StyleSheet.create({
     marginRight: 16,
   },
   periodText: {
-    fontSize: 16,
+    fontSize: 18,
+    color: 'black',
   },
   selectedPeriodText: {
     color: 'green',
@@ -280,6 +287,10 @@ const styles = StyleSheet.create({
   dateInput: {
     borderBottomWidth: 1,
     fontSize: 16,
+  },
+  alegere: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
 });
 export default TransactionsFilterModal;

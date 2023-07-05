@@ -103,7 +103,7 @@ export default function Budget({navigation}) {
     );
     if (selectedMonth !== null) {
      // Extract the desired value from the object
-      return <Text style={styles.totalSpentAmount}>Cheltuieli totale: {totalAmount}</Text>;
+      return <Text style={styles.totalSpentAmount}>Cheltuieli totale: {totalAmount} RON</Text>;
     } else {
       return null;
     }

@@ -93,7 +93,7 @@ function App() {
         screenOptions={{
           headerShown: false,
         }}>
-        {/* <Stack.Screen name="Login" component={Login} /> */}
+        <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="Home" component={AppTabs} />
       </Stack.Navigator>
     </NavigationContainer>

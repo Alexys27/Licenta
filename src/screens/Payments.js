@@ -43,6 +43,7 @@ import moment from 'moment';
 import Filtering from '../components/filtering';
 import DropDownPicker from 'react-native-dropdown-picker';
 import TransactionsFilterModal from './modalFiltrare';
+import {TransferIntreConturiModal} from './transferConturiModal';
 export default function Payments({navigation}) {
   const {transactions} = useSelector(state => state.transactionReducer);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -60,6 +61,14 @@ export default function Payments({navigation}) {
   const [titluContAles, setTitluContAles] = useState();
   const [facturiModal, setFacturiModal] = useState(false);
   const [open, setOpen] = useState(false);
+  const [openConturi, setOpenConturi] = useState(false);
+  const [sold, setSold] = useState();
+  const handleOpenConturi = () => {
+    setOpenConturi(true);
+  };
+  const handleCloseConturi = () => {
+    setOpenConturi(false);
+  };
   const handleOpenModal = () => {
     accounts.map(acc => {
       if (acc.Title === 'Cont Principal') {
@@ -98,6 +107,7 @@ export default function Payments({navigation}) {
         sumaTranzactii += sumeTranzactii[i];
       }
       updateSold('cont_principal', sumaTranzactii);
+      setSold(sumaTranzactii);
     } catch (error) {
       console.error('Error fetching transactions: ', error);
     }
@@ -121,15 +131,16 @@ export default function Payments({navigation}) {
     SetShowForm(true);
   };
   //TO-DO: handler de modificare IBAN_cont la alegerea din meniul 'din contul'
-
   const setTransaction = () => {
     const timestamp = firebase.firestore.Timestamp.fromDate(new Date());
     if (name.length === 0 || suma.length === 0 || IBAN.length === 0) {
       Alert.alert('Atentie!', 'Toate campurile notate cu (*) sunt obligatorii');
     } else if (IBAN.length !== 24) {
       Alert.alert('Eroare!', 'Introduceti un IBAN corect!');
-    } else if (suma <= 0){
+    } else if (suma <= 0) {
       Alert.alert('Eroare!', 'Suma trebuie sa fie mai mare decat 0!');
+    } else if (suma > sold) {
+      Alert.alert('Eroare!', 'Suma nu poate fi mai mare decat soldul curent!');
     } else {
       try {
         var Transaction = {
@@ -241,7 +252,6 @@ export default function Payments({navigation}) {
   };
   const handleNumeBeneficiarChange = value => {
     setName(value);
-
   };
   const handleSetSuma = value => {
     setSuma(value);
@@ -296,6 +306,7 @@ export default function Payments({navigation}) {
                       {label: 'Chirie', value: 'Chirie'},
                       {label: 'Facturi', value: 'Facturi'},
                       {label: 'Abonamente', value: 'Abonamente'},
+                      {label: 'Rate', value: 'Rate'},
                       {label: 'Altele', value: 'Altele'},
                     ]}
                     open={open}
@@ -373,10 +384,13 @@ export default function Payments({navigation}) {
           />
           <Text style={styles.platiText}>Plata factura</Text>
         </View>
+        <TransferIntreConturiModal
+        visible = {openConturi}
+        onRequestClose={handleCloseConturi}/>
         <View style={styles.elementePlata}>
           <Transfer
             color="#CCE3DE"
-            onPressButton={handleOpenModal}
+            onPressButton={handleOpenConturi}
             iconName="level-down-alt"
           />
           <Text style={styles.platiText}>Intre conturile</Text>
